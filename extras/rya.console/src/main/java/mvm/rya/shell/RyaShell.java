@@ -27,23 +27,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class RyaShell {
 
-    // Administrative Commands.
-    // install
-    // uninstall
-    // list instances
-    // get instance details
-    // create new pcj
-
-
-    // Data Commands.
-    // load statement
-    // load statements file
-    // query
-
-    // Misc. Commands.
-    // help
-
     public static void main(final String[] args) {
-
+        // TODO Parse the command line for the configuration file that tells
+        //      this shell which storage (accumulo vs mongo, ips, etc) to connect
+        //      to. Initialize all of the commands, write the splash screen, then
+        //      wait for user input.
     }
 }

@@ -1,4 +1,4 @@
-package mvm.rya.shell.command.accumulo.data;
+package mvm.rya.shell.command.data;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,12 +19,25 @@ package mvm.rya.shell.command.accumulo.data;
  * under the License.
  */
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Iterator;
+
+import org.openrdf.model.Statement;
+
+import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
 
 /**
- * TODO doc
+ * Browse through a Rya instance's {@link Statement}s.
  */
-@ParametersAreNonnullByDefault
-public class AccumuloQueryInstances {
+public interface BrowseStatements {
 
+    /**
+     * Browse through a Rya instance's {@link Statement}s.
+     *
+     * @param instanceName - Indicates which Rya instance to browse. (not null)
+     * @return The Rya instance's {@link Statement}s.
+     * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
+     * @throws CommandException Something caused the command to fail.
+     */
+    public Iterator<Statement> browse(String instanceName) throws InstanceDoesNotExistException, CommandException;
 }

@@ -1,7 +1,5 @@
 package mvm.rya.shell;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,6 +18,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * specific language governing permissions and limitations
  * under the License.
  */
+
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * TODO doc

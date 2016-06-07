@@ -19,21 +19,29 @@ package mvm.rya.shell.command.data;
  * under the License.
  */
 
+import java.util.Iterator;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import org.openrdf.query.BindingSet;
+
+import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.InstanceDoesNotExistException;
 
 /**
- * TODO doc
+ * Queries a Rya instance with a SPARQL query.
  */
 @ParametersAreNonnullByDefault
 public interface Query {
 
     /**
-     * TODO doc
+     * Queries a Rya instance with a SPARQL query.
      *
-     * @param instanceName
-     * @param sparql
+     * @param instanceName - Indicates which Rya instance to query. (not null)
+     * @param sparql - The SPARQL query that will be executed. (not null)
+     * @return The query's results.
+     * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
+     * @throws CommandException Something caused the command to fail.
      */
-    public void queryInstance(final String instanceName, final String sparql) throws InstanceDoesNotExistException;
+    public Iterator<BindingSet> queryInstance(final String instanceName, final String sparql) throws InstanceDoesNotExistException, CommandException;
 }

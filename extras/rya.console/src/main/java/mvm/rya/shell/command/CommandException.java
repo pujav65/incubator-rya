@@ -24,7 +24,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import mvm.rya.shell.RyaShellException;
 
 /**
- * TODO doc
+ * Something caused one of the {@linhk RyaShell}'s commands to fail.
  */
 @ParametersAreNonnullByDefault
 public class CommandException extends RyaShellException {
@@ -32,5 +32,9 @@ public class CommandException extends RyaShellException {
 
     public CommandException(final String message) {
         super(message);
+    }
+
+    public CommandException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 }

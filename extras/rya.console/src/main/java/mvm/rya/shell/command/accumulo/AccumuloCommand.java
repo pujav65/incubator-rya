@@ -27,7 +27,8 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
 
 /**
- * TODO doc
+ * An abstract class that holds onto Accumulo access information. Extend this
+ * when implementing a command that interacts with Accumulo.
  */
 @ParametersAreNonnullByDefault
 public abstract class AccumuloCommand {
@@ -36,20 +37,29 @@ public abstract class AccumuloCommand {
     private final Authorizations auths;
 
     /**
-     * TODO doc
+     * Constructs an instance of {@link AccumuloCommand}.
      *
-     * @param connector
-     * @param auths
+     * @param connector - Provides programatic access to the instance of Accumulo
+     *   that hosts Rya instance. (not null)
+     * @param auths - The authorizations that will be used when interacting with
+     *   the instance of Accumulo. (not null)
      */
     public AccumuloCommand(final Connector connector, final Authorizations auths) {
         this.connector = requireNonNull(connector);
         this.auths = requireNonNull(auths);
     }
 
+    /**
+     * @return Provides programatic access to the instance of Accumulo that hosts Rya instance.
+     */
     public Connector getConnector() {
         return connector;
     }
 
+    /**
+     * @return The authorizations that will be used when interacting with
+     *   the instance of Accumulo.
+     */
     public Authorizations getAuths() {
         return auths;
     }

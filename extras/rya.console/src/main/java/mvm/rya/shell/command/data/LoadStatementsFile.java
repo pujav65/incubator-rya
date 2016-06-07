@@ -23,20 +23,37 @@ import java.nio.file.Path;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import org.openrdf.model.Statement;
+
+import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.InstanceDoesNotExistException;
 
 /**
- * TODO doc
+ * Loads the {@link Statement}s that are in a file on the local filesystem
+ * into an instance of Rya.
  */
 @ParametersAreNonnullByDefault
 public interface LoadStatementsFile {
 
     /**
-     * TODO doc
+     * Loads the {@link Statement}s that are in a file on the local filesystem
+     * into an instance of Rya.
      *
-     * @param instanceName
-     * @param statementsFile
-     * @throws InstanceDoesNotExistException
+     * @param instanceName - Indicates which Rya instance will store the {@link Statement}s. (not null)
+     * @param statementsFile - The file to load. (not null)
+     * @param format - The format of the statement file. (not null)
+     * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
+     * @throws CommandException Something caused the command to fail.
      */
-    public void load(String instanceName, Path statementsFile) throws InstanceDoesNotExistException;
+    public void load(final String instanceName, final Path statementsFile, final StatementFileFormat format)
+            throws InstanceDoesNotExistException, CommandException;
+
+    /**
+     * Defines the RDF Statement file formats that are supported by the {@link LoadStatementsFile} command.
+     */
+    public static enum StatementFileFormat {
+        TURTLE;
+
+        // TODO Fill this in.
+    }
 }

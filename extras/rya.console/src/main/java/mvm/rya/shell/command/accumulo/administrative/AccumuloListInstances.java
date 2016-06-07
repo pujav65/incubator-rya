@@ -26,22 +26,37 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
 
+import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
 import mvm.rya.shell.command.administrative.ListInstances;
 
+// TODO impl, test
+
 /**
- * TODO doc
+ * An Accumulo implementation of the {@link ListInstances} command.
  */
 @ParametersAreNonnullByDefault
 public class AccumuloListInstances extends AccumuloCommand implements ListInstances {
 
+    /**
+     * Constructs an instance of {@link AccumuloListInstances}.
+     *
+     * @param connector - Provides programatic access to the instance of Accumulo
+     *   that hosts Rya instance. (not null)
+     * @param auths - The authorizations that will be used when interacting with
+     *   the instance of Accumulo. (not null)
+     */
     public AccumuloListInstances(final Connector connector, final Authorizations auths) {
         super(connector, auths);
     }
 
     @Override
-    public List<String> listInstances() {
+    public List<String> listInstances() throws CommandException {
         // TODO Auto-generated method stub
+
+        // Iterate through all of the SPO tables that are in accumulo and return their prefixes.
+        // If all of them have been installed correctly, we could iterate through the instance details tables.
+
         return null;
     }
 }

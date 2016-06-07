@@ -1,6 +1,4 @@
-package mvm.rya.shell.command.accumulo.administrative;
-
-import javax.annotation.ParametersAreNonnullByDefault;
+package mvm.rya.shell.command.accumulo.data;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,39 +19,42 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * under the License.
  */
 
+import java.util.Iterator;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
+import org.openrdf.model.Statement;
 
 import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
-import mvm.rya.shell.command.administrative.Install;
+import mvm.rya.shell.command.data.BrowseStatements;
 
-// TODO impl, test
+// TODO test, impl
 
 /**
- * An Accumulo implementation of the {@link Install} command.
+ * An Accumulo implementation of the {@link BrowseStatements} command.
  */
 @ParametersAreNonnullByDefault
-public class AccumuloInstall extends AccumuloCommand implements Install {
+public class AccumuloBrowseStatements extends AccumuloCommand implements BrowseStatements {
 
     /**
-     * Constructs an instance of {@link AccumuloInstall}.
+     * Constructs an instance of {@link AccumuloBrowseStatements}.
      *
      * @param connector - Provides programatic access to the instance of Accumulo
      *   that hosts Rya instance. (not null)
      * @param auths - The authorizations that will be used when interacting with
      *   the instance of Accumulo. (not null)
      */
-    public AccumuloInstall(final Connector connector, final Authorizations auths) {
+    public AccumuloBrowseStatements(final Connector connector, final Authorizations auths) {
         super(connector, auths);
     }
 
     @Override
-    public void install(final String instanceName, final InstallConfiguration installConfig) throws DuplicateInstanceNameException, CommandException {
+    public Iterator<Statement> browse(final String instanceName) throws InstanceDoesNotExistException, CommandException {
         // TODO Auto-generated method stub
-
-        // NOTE: This needs to initialize instance's details in the RyaDetailsRepository
-        // as well as actually create all of the indexes what will be maintained.
-
+        return null;
     }
 }

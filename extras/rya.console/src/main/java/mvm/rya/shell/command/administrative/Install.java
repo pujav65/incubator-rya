@@ -22,55 +22,167 @@ package mvm.rya.shell.command.administrative;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
+import mvm.rya.shell.command.CommandException;
+
 /**
- * TODO doc
+ * Installs a new instance of Rya.
  */
 @ParametersAreNonnullByDefault
 public interface Install {
 
     /**
-     * TODO doc
+     * Install a new instance of Rya.
      *
-     * the details are used to configure what's going to be installed. Right?
-     *
-     * @param instanceName
-     * @param details
+     * @param instanceName - Indicates the name of the Rya instance to install. (not null)
+     * @param installConfig - Configures how the Rya instance will operate. The
+     *   instance name that is in this variable must match the {@code instanceName}. (not null)
+     * @throws DuplicateInstanceNameException A Rya instance already exists for the provided name.
+     * @throws CommandException Something caused the command to fail.
      */
-    public void install(final String instanceName, final InstallConfiguration installConfig);
-
+    public void install(final String instanceName, final InstallConfiguration installConfig) throws DuplicateInstanceNameException, CommandException;
 
     /**
-     * TODO impl, test, doc
+     * A Rya instance already exists for the provided name.
+     */
+    public static class DuplicateInstanceNameException extends CommandException {
+        private static final long serialVersionUID = 1L;
+
+        public DuplicateInstanceNameException(final String message) {
+            super(message);
+        }
+    }
+
+    /**
+     * Configures how an instance of Rya will be configured when it is installed.
      */
     @Immutable
     @ParametersAreNonnullByDefault
     public static class InstallConfiguration {
 
-        private boolean enableFreeTextIndex;
-        private boolean enableGeoIndex;
-        private boolean enableEntityCentricIndex;
-        private boolean enableTemporalIndex;
-        private boolean enablePcjIndex;
+        private final boolean enableFreeTextIndex;
+        private final boolean enableGeoIndex;
+        private final boolean enableEntityCentricIndex;
+        private final boolean enableTemporalIndex;
+        private final boolean enablePcjIndex;
 
-        private InstallConfiguration() {
-
+        /**
+         * Use a {@link Builder} to create instances of this class.
+         */
+        private InstallConfiguration(
+                final boolean enableFreeTextIndex,
+                final boolean enableGeoIndex,
+                final boolean enableEntityCentricIndex,
+                final boolean enableTemporalIndex,
+                final boolean enablePcjIndex) {
+            this.enableFreeTextIndex = enableFreeTextIndex;
+            this.enableGeoIndex = enableGeoIndex;
+            this.enableEntityCentricIndex = enableEntityCentricIndex;
+            this.enableTemporalIndex = enableTemporalIndex;
+            this.enablePcjIndex = enablePcjIndex;
         }
 
+        /**
+         * @return Whether or not the installed instance of Rya will maintain a Free Text index.
+         */
+        public boolean isFreeTextIndexEnabled() {
+            return enableFreeTextIndex;
+        }
+
+        /**
+         * @return Whether or not the installed instance of Rya will maintain a Geospatial index.
+         */
+        public boolean isGeoIndexEnabled() {
+            return enableGeoIndex;
+        }
+
+        /**
+         * @return Whether or not the installed instance of Rya will maintain an Entity Centric index.
+         */
+        public boolean isEntityCentrixIndexEnabled() {
+            return enableEntityCentricIndex;
+        }
+
+        /**
+         * @return Whether or not the installed instance of Rya will maintain a Temporal index.
+         */
+        public boolean isTemporalIndexEnabled() {
+            return enableTemporalIndex;
+        }
+
+        /**
+         * @return Whether or not the installed instance of Rya will maintain a PCJ index.
+         */
+        public boolean isPcjIndexEnabled() {
+            return enablePcjIndex;
+        }
+
+        /**
+         * Builds instances of {@link InstallConfiguration}.
+         */
+        @ParametersAreNonnullByDefault
         public static class Builder {
-            private final boolean enableFreeTextIndex = false;
-            private final boolean enableGeoIndex = false;
-            private final boolean enableEntityCentricIndex = false;
-            private final boolean enableTemporalIndex = false;
-            private final boolean enablePcjIndex = false;
+            private boolean enableFreeTextIndex = false;
+            private boolean enableGeoIndex = false;
+            private boolean enableEntityCentricIndex = false;
+            private boolean enableTemporalIndex = false;
+            private boolean enablePcjIndex = false;
 
+            /**
+             * @param enabled - Whether or not the installed instance of Rya will maintain a Free Text index.
+             * @return This {@link Builder} so that method invocations may be chained.
+             */
+            public Builder setEnableFreeTextIndex(final boolean enabled) {
+                enableFreeTextIndex = enabled;
+                return this;
+            }
+
+            /**
+             * @param enabled - Whether or not the installed instance of Rya will maintain a Geospatial index.
+             * @return This {@link Builder} so that method invocations may be chained.
+             */
+            public Builder setEnableGeoIndex(final boolean enabled) {
+                enableGeoIndex = true;
+                return this;
+            }
+
+            /**
+             * @param enabled - Whether or not the installed instance of Rya will maintain an Entity Centric index.
+             * @return This {@link Builder} so that method invocations may be chained.
+             */
+            public Builder setEnableEntityCentricIndex(final boolean enabled) {
+                enableEntityCentricIndex = true;
+                return this;
+            }
+
+            /**
+             * @param enabled - Whether or not the installed instance of Rya will maintain a Temporal index.
+             * @return This {@link Builder} so that method invocations may be chained.
+             */
+            public Builder setEnableTemporalIndex(final boolean enabled) {
+                enableTemporalIndex = true;
+                return this;
+            }
+
+            /**
+             * @param enabled - Whether or not the installed instance of Rya will maintain a PCJ index.
+             * @return This {@link Builder} so that method invocations may be chained.
+             */
+            public Builder setEnablePcjIndex(final boolean enabled) {
+                enablePcjIndex = true;
+                return this;
+            }
+
+            /**
+             * @return Builds an instance of {@link InstallConfiguration} using this builder's values.
+             */
+            public InstallConfiguration build() {
+                return new InstallConfiguration(
+                        enableFreeTextIndex,
+                        enableGeoIndex,
+                        enableEntityCentricIndex,
+                        enableTemporalIndex,
+                        enablePcjIndex);
+            }
         }
-
-
-        // TODO for now just have a list of which indexes will be enabled by default?
-
-
-
-        // booleans for each of the indices
-
     }
 }

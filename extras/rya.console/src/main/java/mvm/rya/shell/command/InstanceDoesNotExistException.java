@@ -21,8 +21,11 @@ package mvm.rya.shell.command;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import mvm.rya.shell.RyaShell;
+
 /**
- * TODO doc
+ * One of the {@link RyaShell} commands could not be executed because teh specified
+ * instance of Rya does not exist.
  */
 @ParametersAreNonnullByDefault
 public class InstanceDoesNotExistException extends CommandException {
@@ -30,5 +33,9 @@ public class InstanceDoesNotExistException extends CommandException {
 
     public InstanceDoesNotExistException(final String message) {
         super(message);
+    }
+
+    public InstanceDoesNotExistException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 }

@@ -22,7 +22,7 @@ package mvm.rya.shell.command;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * TODO doc
+ * TODO impl, test, doc
  */
 @ParametersAreNonnullByDefault
 public class Help {

@@ -24,21 +24,37 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
 
+import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
 import mvm.rya.shell.command.administrative.DeletePCJ;
 
+// TODO impl, test
+
 /**
- * TODO doc
+ * An Accumulo implementation of the {@link DeletePCJ} command.
  */
 @ParametersAreNonnullByDefault
 public class AccumuloDeletePCJ extends AccumuloCommand implements DeletePCJ {
 
+    /**
+     * Constructs an instance of {@link AccumuloDeletePCJ}.
+     *
+     * @param connector - Provides programatic access to the instance of Accumulo
+     *   that hosts Rya instance. (not null)
+     * @param auths - The authorizations that will be used when interacting with
+     *   the instance of Accumulo. (not null)
+     */
     public AccumuloDeletePCJ(final Connector connector, final Authorizations auths) {
         super(connector, auths);
     }
 
     @Override
-    public void deletePCJ(final String instanceName, final String pcjId) {
+    public void deletePCJ(final String instanceName, final String pcjId) throws InstanceDoesNotExistException, CommandException {
         // TODO Auto-generated method stub
+
+        // NOTE: This command will need to query the Rya instance's RyaDetailsRepository
+        // to determine how the PCJ is being maintained. If it's being maintained by Fluo, then
+        // that job must be stopped as well as deleting the PCJ Index from Accumulo.
     }
 }

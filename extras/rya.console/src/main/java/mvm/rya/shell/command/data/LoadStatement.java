@@ -23,20 +23,22 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.model.Statement;
 
+import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.InstanceDoesNotExistException;
 
 /**
- * TODO doc
+ * Loads a single {@link Statement} into an instance of Rya.
  */
 @ParametersAreNonnullByDefault
 public interface LoadStatement {
 
     /**
-     * TODO doc
+     * Loads a single {@link Statement} into an instance of Rya.
      *
-     * @param instanceName
-     * @param statement
-     * @throws InstanceDoesNotExistException
+     * @param instanceName - Indicates which Rya instance will store the {@link Statement}. (not null)
+     * @param statement - The statement to load. (not null)
+     * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
+     * @throws CommandException Something caused the command to fail.
      */
-    public void loadStatement(final String instanceName, final Statement statement) throws InstanceDoesNotExistException;
+    public void loadStatement(final String instanceName, final Statement statement) throws InstanceDoesNotExistException, CommandException;
 }

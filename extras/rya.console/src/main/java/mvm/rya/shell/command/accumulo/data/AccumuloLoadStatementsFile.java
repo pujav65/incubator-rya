@@ -1,7 +1,5 @@
 package mvm.rya.shell.command.accumulo.data;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,10 +19,43 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * under the License.
  */
 
+import java.nio.file.Path;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.security.Authorizations;
+
+import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
+import mvm.rya.shell.command.accumulo.AccumuloCommand;
+import mvm.rya.shell.command.data.LoadStatementsFile;
+
+//TODO impl, test
+
 /**
- * TODO doc
+ * An Accumulo implementation of the {@link LoadStatementsFile} command.
  */
 @ParametersAreNonnullByDefault
-public class AccumuloLoadStatementsFile {
+public class AccumuloLoadStatementsFile extends AccumuloCommand implements LoadStatementsFile {
+
+    /**
+     * Constructs an instance of {@link AccumuloLoadStatementsFile}.
+     *
+     * @param connector - Provides programatic access to the instance of Accumulo
+     *   that hosts Rya instance. (not null)
+     * @param auths - The authorizations that will be used when interacting with
+     *   the instance of Accumulo. (not null)
+     */
+    public AccumuloLoadStatementsFile(final Connector connector, final Authorizations auths) {
+        super(connector, auths);
+    }
+
+    @Override
+    public void load(final String instanceName, final Path statementsFile, final StatementFileFormat format)
+            throws InstanceDoesNotExistException, CommandException {
+        // TODO Auto-generated method stub
+
+    }
 
 }

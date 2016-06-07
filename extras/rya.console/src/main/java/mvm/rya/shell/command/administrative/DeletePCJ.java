@@ -21,17 +21,24 @@ package mvm.rya.shell.command.administrative;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
+
 /**
- * TODO doc
+ * Deletes a PCJ from an instance of Rya.
  */
 @ParametersAreNonnullByDefault
 public interface DeletePCJ {
 
     /**
-     * TODO doc
+     * Deletes a PCJ from an instance of Rya.
      *
-     * @param instanceName
-     * @param pcjId
+     * @param instanceName - Indicates which Rya instance is maintaining the PCJ. (not null)
+     * @param pcjId - The ID of the PCJ that will be deleted. (not null)
+     * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
+     * @throws CommandException Something caused the command to fail.
      */
-    public void deletePCJ(String instanceName, final String pcjId);
+    public void deletePCJ(String instanceName, final String pcjId) throws InstanceDoesNotExistException, CommandException;
+
+    // TODO pcj does not exist exception
 }

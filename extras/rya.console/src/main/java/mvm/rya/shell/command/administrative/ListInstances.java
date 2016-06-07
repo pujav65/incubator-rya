@@ -23,16 +23,19 @@ import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import mvm.rya.shell.command.CommandException;
+
 /**
- * TODO doc
+ * List the names of the installed Rya instances.
  */
 @ParametersAreNonnullByDefault
 public interface ListInstances {
 
     /**
-     * TODO doc
+     * List the names of the installed Rya instances.
      *
-     * @return
+     * @return The names of the installed Rya Instances.
+     * @throws CommandException Something caused the command to fail.
      */
-    public List<String> listInstances();
+    public List<String> listInstances() throws CommandException;
 }

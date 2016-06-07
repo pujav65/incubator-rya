@@ -22,18 +22,22 @@ package mvm.rya.shell.command.administrative;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import mvm.rya.api.instance.RyaDetails;
+import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
 
 /**
- * TODO doc
+ * Get configuration and maintenance information about a specific instance of Rya.
  */
 @ParametersAreNonnullByDefault
 public interface GetInstanceDetails {
 
     /**
-     * TODO doc
+     * Get configuration and maintenance information about a specific instance of Rya.
      *
-     * @param instanceName
-     * @return
+     * @param instanceName - Indicates which Rya instance to fetch the details from. (not null)
+     * @return The {@link RyaDetails} that describe the instance of Rya.
+     * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
+     * @throws CommandException Something caused the command to fail.
      */
-    public RyaDetails getDetails(final String instanceName);
+    public RyaDetails getDetails(final String instanceName) throws InstanceDoesNotExistException, CommandException;
 }

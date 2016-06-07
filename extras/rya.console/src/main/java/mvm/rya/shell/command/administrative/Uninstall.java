@@ -21,16 +21,21 @@ package mvm.rya.shell.command.administrative;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
+
 /**
- * TODO doc
+ * Uninstalls an instannce of Rya.
  */
 @ParametersAreNonnullByDefault
 public interface Uninstall {
 
     /**
-     * TODO doc
+     * Uninstalls an instance of Rya.
      *
-     * @param instanceName
+     * @param instanceName - Indicates which Rya instance to uninstalled. (not null)
+     * @throws InstanceDoesNotExistException The instance of Rya already doesn't exist.
+     * @throws CommandException Something caused the command to fail.
      */
-    public void uninstall(final String instanceName);
+    public void uninstall(final String instanceName) throws InstanceDoesNotExistException, CommandException;
 }

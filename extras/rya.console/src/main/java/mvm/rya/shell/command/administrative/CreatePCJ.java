@@ -21,17 +21,24 @@ package mvm.rya.shell.command.administrative;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
+
 /**
- * TODO doc
+ * Create a new PCJ within the target instance of Rya.
  */
 @ParametersAreNonnullByDefault
 public interface CreatePCJ {
 
-    // TODO not sure what information is required here.
-
-    // TODO fluo vs pig vs locally
-
-    // TODO returns the PCJ id.
-
-    public String createPCJ(final String instanceName);
+    /**
+     * Designate a new PCJ that will be maintained by the target instance of Rya.
+     *
+     * @param instanceName - Indicates which Rya instance will create and maintain
+     *   the PCJ. (not null)
+     * @param sparql - The SPARQL query that will be maintained. (not null)
+     * @return The ID that was assigned to this newly created PCJ.
+     * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
+     * @throws CommandException Something caused the command to fail.
+     */
+    public String createPCJ(final String instanceName, String sparql) throws InstanceDoesNotExistException, CommandException;
 }

@@ -21,10 +21,37 @@ package mvm.rya.shell.command.accumulo.data;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.security.Authorizations;
+import org.openrdf.model.Statement;
+
+import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
+import mvm.rya.shell.command.accumulo.AccumuloCommand;
+import mvm.rya.shell.command.data.LoadStatement;
+
+// TODO impl, test
+
 /**
- * TODO doc
+ * An Accumulo implementation of the {@link LoadStatement} command.
  */
 @ParametersAreNonnullByDefault
-public class AccumuloLoadStatement {
+public class AccumuloLoadStatement extends AccumuloCommand implements LoadStatement {
 
+    /**
+     * Constructs an instance of {@link AccumuloLoadStatement}.
+     *
+     * @param connector - Provides programatic access to the instance of Accumulo
+     *   that hosts Rya instance. (not null)
+     * @param auths - The authorizations that will be used when interacting with
+     *   the instance of Accumulo. (not null)
+     */
+    public AccumuloLoadStatement(final Connector connector, final Authorizations auths) {
+        super(connector, auths);
+    }
+
+    @Override
+    public void loadStatement(final String instanceName, final Statement statement) throws InstanceDoesNotExistException, CommandException {
+        // TODO Auto-generated method stub
+    }
 }

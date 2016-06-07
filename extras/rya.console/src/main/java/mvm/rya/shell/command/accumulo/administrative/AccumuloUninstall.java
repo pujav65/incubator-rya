@@ -24,27 +24,36 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
 
+import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
 import mvm.rya.shell.command.administrative.Uninstall;
 
+// TODO impl, test
+
 /**
- * TODO doc
+ * An Accumulo implementation of the {@link Uninstall} command.
  */
 @ParametersAreNonnullByDefault
 public class AccumuloUninstall extends AccumuloCommand implements Uninstall {
 
     /**
-     * TODO doc
+     * Constructs an instance of {@link AccumuloUninstall}.
      *
-     * @param connector
-     * @param auths
+     * @param connector - Provides programatic access to the instance of Accumulo
+     *   that hosts Rya instance. (not null)
+     * @param auths - The authorizations that will be used when interacting with
+     *   the instance of Accumulo. (not null)
      */
     public AccumuloUninstall(final Connector connector, final Authorizations auths) {
         super(connector, auths);
     }
 
     @Override
-    public void uninstall(final String instanceName) {
+    public void uninstall(final String instanceName) throws InstanceDoesNotExistException, CommandException {
         // TODO Auto-generated method stub
+
+        // NOTE: If Fluo is being used to maintain the PCJs for this application, also
+        // stop/uninstall that job.
     }
 }
