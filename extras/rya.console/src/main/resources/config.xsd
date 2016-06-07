@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="configuration" >
+        <xs:complexType>
+            <xs:choice>
+                <xs:element name="Accumulo">
+                    <xs:complexType>
+                        <xs:all>
+                            <xs:element name="username" type="xs:string"/>
+                            <xs:element name="password" type="xs:string"/>
+                            <xs:element name="instanceName" type="xs:string"/>
+                            <xs:element name="zookeeperServers">
+                                <xs:simpleType>
+                                    <xs:list itemType="xs:string"/>
+                                </xs:simpleType>
+                            </xs:element>
+                        </xs:all>
+                    </xs:complexType>
+                </xs:element>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
