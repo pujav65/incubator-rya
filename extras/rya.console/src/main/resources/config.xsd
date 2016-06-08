@@ -3,18 +3,20 @@
     <xs:element name="configuration" >
         <xs:complexType>
             <xs:choice>
-                <xs:element name="Accumulo">
+                <xs:element name="accumulo">
                     <xs:complexType>
-                        <xs:all>
+                        <xs:sequence>
                             <xs:element name="username" type="xs:string"/>
                             <xs:element name="password" type="xs:string"/>
                             <xs:element name="instanceName" type="xs:string"/>
                             <xs:element name="zookeeperServers">
-                                <xs:simpleType>
-                                    <xs:list itemType="xs:string"/>
-                                </xs:simpleType>
+                                <xs:complexType>
+                                    <xs:sequence maxOccurs="unbounded">
+                                        <xs:element name="hostname" type="xs:string"/>
+                                    </xs:sequence>
+                                </xs:complexType>
                             </xs:element>
-                        </xs:all>
+                        </xs:sequence>
                     </xs:complexType>
                 </xs:element>
             </xs:choice>
