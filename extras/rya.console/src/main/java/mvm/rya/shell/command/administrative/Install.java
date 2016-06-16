@@ -58,6 +58,7 @@ public interface Install {
     @ParametersAreNonnullByDefault
     public static class InstallConfiguration {
 
+        private final boolean enableTableHashPrefix;
         private final boolean enableFreeTextIndex;
         private final boolean enableGeoIndex;
         private final boolean enableEntityCentricIndex;
@@ -68,16 +69,25 @@ public interface Install {
          * Use a {@link Builder} to create instances of this class.
          */
         private InstallConfiguration(
+                final boolean enableTableHashPrefix,
                 final boolean enableFreeTextIndex,
                 final boolean enableGeoIndex,
                 final boolean enableEntityCentricIndex,
                 final boolean enableTemporalIndex,
                 final boolean enablePcjIndex) {
+            this.enableTableHashPrefix = enableTableHashPrefix;
             this.enableFreeTextIndex = enableFreeTextIndex;
             this.enableGeoIndex = enableGeoIndex;
             this.enableEntityCentricIndex = enableEntityCentricIndex;
             this.enableTemporalIndex = enableTemporalIndex;
             this.enablePcjIndex = enablePcjIndex;
+        }
+
+        /**
+         * @return Whether or not the installed instance of Rya will include table prefix hashing.
+         */
+        public boolean isTableHashPrefixEnabled() {
+            return enableTableHashPrefix;
         }
 
         /**
@@ -120,11 +130,21 @@ public interface Install {
          */
         @ParametersAreNonnullByDefault
         public static class Builder {
+            private boolean enableTableHashPrefix = false;
             private boolean enableFreeTextIndex = false;
             private boolean enableGeoIndex = false;
             private boolean enableEntityCentricIndex = false;
             private boolean enableTemporalIndex = false;
             private boolean enablePcjIndex = false;
+
+            /**
+             * @param enabled - Whether or not the installed instance of Rya will include table prefix hashing.
+             * @return This {@link Builder} so that method invocations may be chained.
+             */
+            public Builder setEnableTableHashPrefix(final boolean enabled) {
+                enableTableHashPrefix = enabled;
+                return this;
+            }
 
             /**
              * @param enabled - Whether or not the installed instance of Rya will maintain a Free Text index.
@@ -176,6 +196,7 @@ public interface Install {
              */
             public InstallConfiguration build() {
                 return new InstallConfiguration(
+                        enableTableHashPrefix,
                         enableFreeTextIndex,
                         enableGeoIndex,
                         enableEntityCentricIndex,
