@@ -22,17 +22,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.shell.Bootstrap;
@@ -44,50 +36,14 @@ import mvm.rya.shell.util.PasswordPrompt;
 /**
  * Integration tests the methods of {@link RyaConnectionCommands}.
  */
-public class RyaConnectionCommandsIT {
-
-    /**
-     * A mini Accumulo cluster that can be used to test the commands against.
-     */
-    private static MiniAccumuloCluster cluster = null;
-
-    @BeforeClass
-    public static void startMiniAccumulo() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException {
-        // Setup the mini cluster.
-        final File tempDirectory = Files.createTempDirectory("testDir").toFile();
-        cluster = new MiniAccumuloCluster(tempDirectory, "password");
-        cluster.start();
-    }
-
-    @AfterClass
-    public static void stopMiniAccumulo() throws IOException, InterruptedException {
-        cluster.stop();
-    }
-
-    /**
-     * The bootstrap that was used to initialize the Shell that will be tested.
-     */
-    private Bootstrap bootstrap;
-
-    /**
-     * The shell that will be tested.
-     */
-    private JLineShellComponent shell;
-
-    @Before
-    public void startShell() {
-        // Bootstrap the shell with the test bean configuration.
-        bootstrap = new Bootstrap(new String[]{}, new String[]{"file:src/test/resources/RyaShellTest-context.xml"});
-        shell = bootstrap.getJLineShellComponent();
-    }
-
-    @After
-    public void stopShell() {
-        shell.stop();
-    }
+public class RyaConnectionCommandsIT extends RyaShellITBase {
 
     @Test
     public void connectAccumulo() throws IOException {
+        final MiniAccumuloCluster cluster = getTestCluster();
+        final Bootstrap bootstrap = getTestBootstrap();
+        final JLineShellComponent shell = getTestShell();
+
         // Mock the user entering the correct password.
         final ApplicationContext context = bootstrap.getApplicationContext();
         final PasswordPrompt mockPrompt = context.getBean( PasswordPrompt.class );
@@ -109,6 +65,10 @@ public class RyaConnectionCommandsIT {
 
     @Test
     public void connectAccumulo_noAuths() throws IOException {
+        final MiniAccumuloCluster cluster = getTestCluster();
+        final Bootstrap bootstrap = getTestBootstrap();
+        final JLineShellComponent shell = getTestShell();
+
         // Mock the user entering the correct password.
         final ApplicationContext context = bootstrap.getApplicationContext();
         final PasswordPrompt mockPrompt = context.getBean( PasswordPrompt.class );
@@ -129,6 +89,10 @@ public class RyaConnectionCommandsIT {
 
     @Test
     public void connectAccumulo_wrongCredentials() throws IOException {
+        final MiniAccumuloCluster cluster = getTestCluster();
+        final Bootstrap bootstrap = getTestBootstrap();
+        final JLineShellComponent shell = getTestShell();
+
         // Mock the user entering the wrong password.
         final ApplicationContext context = bootstrap.getApplicationContext();
         final PasswordPrompt mockPrompt = context.getBean( PasswordPrompt.class );
@@ -151,6 +115,8 @@ public class RyaConnectionCommandsIT {
 
     @Test
     public void printConnectionDetails_notConnected() {
+        final JLineShellComponent shell = getTestShell();
+
         // Run the print connection details command.
         final CommandResult printResult = shell.executeCommand( RyaConnectionCommands.PRINT_CONNECTION_DETAILS_CMD );
         final String msg = (String) printResult.getResult();
@@ -161,6 +127,10 @@ public class RyaConnectionCommandsIT {
 
     @Test
     public void printConnectionDetails_connectedToAccumulo() throws IOException {
+        final MiniAccumuloCluster cluster = getTestCluster();
+        final Bootstrap bootstrap = getTestBootstrap();
+        final JLineShellComponent shell = getTestShell();
+
         // Mock the user entering the correct password.
         final ApplicationContext context = bootstrap.getApplicationContext();
         final PasswordPrompt mockPrompt = context.getBean( PasswordPrompt.class );
@@ -190,6 +160,10 @@ public class RyaConnectionCommandsIT {
 
     @Test
     public void disconnect() throws IOException {
+        final MiniAccumuloCluster cluster = getTestCluster();
+        final Bootstrap bootstrap = getTestBootstrap();
+        final JLineShellComponent shell = getTestShell();
+
         // Mock the user entering the correct password.
         final ApplicationContext context = bootstrap.getApplicationContext();
         final PasswordPrompt mockPrompt = context.getBean( PasswordPrompt.class );
