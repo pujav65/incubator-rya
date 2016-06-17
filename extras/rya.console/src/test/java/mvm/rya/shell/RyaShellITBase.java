@@ -15,7 +15,9 @@ import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
 
 /**
- * TODO doc
+ * All Rya Shell integration tests should extend this one. It provides startup
+ * and shutdown hooks for a Mini Accumulo Cluster when you start and stop testing.
+ * It also creates a new shell to test with between each test.
  */
 public class RyaShellITBase {
 
