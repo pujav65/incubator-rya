@@ -30,7 +30,11 @@
 
     <!-- Define the shell state bean that will be shared across all of the commands. -->
     <bean id="sharedShellState" class="mvm.rya.shell.SharedShellState" />
-    <bean id="passwordPrompt" class="mvm.rya.shell.util.PasswordPrompt.JLinePasswordPrompt" />
+
+    <!-- We use a mock Password Prompt here to simulate a user entering a password. -->
+    <bean id="passwordPrompt" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="mvm.rya.shell.util.PasswordPrompt" />
+    </bean>
     
     <!-- Define each of the beans that hold onto commands used by the shell. -->
     <bean id="ryaConnectionCommands" class="mvm.rya.shell.RyaConnectionCommands" />

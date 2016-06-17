@@ -18,18 +18,20 @@
  */
 package mvm.rya.shell;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.shell.plugin.support.DefaultPromptProvider;
+import org.springframework.stereotype.Component;
 
 /**
- * TODO impl, test, doc
+ * Customizes the Rya Shell's prompt.
  */
-@ParametersAreNonnullByDefault
-public class RyaShell {
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class RyaPromptProvider extends DefaultPromptProvider {
 
-    public static void main(final String[] args) {
-        // TODO Parse the command line for the configuration file that tells
-        //      this shell which storage (accumulo vs mongo, ips, etc) to connect
-        //      to. Initialize all of the commands, write the splash screen, then
-        //      wait for user input.
+    @Override
+    public String getPrompt() {
+        return "rya>";
     }
 }

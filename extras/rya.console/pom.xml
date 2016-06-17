@@ -1,7 +1,28 @@
 <?xml version='1.0'?>
+<!--
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.extras</artifactId>
@@ -10,10 +31,6 @@
 
     <artifactId>rya.console</artifactId>
     <name>Apache Rya Console</name>
-
-    <properties>
-        <jar.mainclass>org.springframework.shell.Bootstrap</jar.mainclass>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -31,7 +48,6 @@
             </exclusions>
         </dependency>
 
-        <!-- TODO remove if dropping old shell. -->
         <dependency>
             <groupId>org.springframework.shell</groupId>
             <artifactId>spring-shell</artifactId>
@@ -42,40 +58,25 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-minicluster</artifactId>
+            <version>${accumulo.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Use JAXB to generate the Java source code used to unmarshal the shell's
-                 configuration file. You will have to add target/generated-sources/jaxb to
-                 your eclipse build path if you want Eclipse to recognize the generated source. -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>2.2</version>
-                <executions>
-                    <execution>
-                        <id>xjc</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <!-- Specify the configuration XSD file. -->
-                    <sources>   
-                         <source>src/main/resources/config.xsd</source>
-                    </sources>
-                    
-                    <!-- The package the generated source is writen to. -->
-                    <packageName>mvm.rya.shell.config.generated</packageName>
-                </configuration>
-            </plugin>
-        
-            <!-- Automatically place Apache 2 license headers at the top of all of the project's Java files. 
+            <!-- Automatically place Apache 2 license headers at the top of all of the project's Java files.
                  Rat runs during the 'validate' lifecycle step, so it will fail the build before this one 
-                 executes if any of the headers are missing. However, that means rat also insn't checking the
-                 generated sources because they haven't been generated yet. -->
+                 executes if any of the headers are missing. Run the build with rat turned off to add
+                 missing headers to the Java files. -->
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
@@ -83,13 +84,6 @@
                 <configuration>
                     <!-- We use a custome Apache 2.0 license because we do not include a copywrite section. -->                
                     <header>src/main/resources/LICENSE.txt</header>
-                    <!-- Turn default excludes off because they skip the 'target' directory, which contains
-                         the JAXB generated sources. -->
-                    <useDefaultExcludes>false</useDefaultExcludes>
-                    <!-- Include all Java files. -->
-                    <includes>
-                        <include>**/*.java</include>
-                    </includes>
                 </configuration>
                 <executions>
                     <execution>
@@ -100,25 +94,36 @@
                     </execution>
                 </executions>
             </plugin>
-
+            
+            <!-- Create an executable jar file for the shell. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <!--<useUniqueVersions>false</useUniqueVersions> -->
-                            <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>${jar.mainclass}</mainClass>
-                        </manifest>
-                        <manifestEntries>
-                            <version>${project.version}</version>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.handlers</resource>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/spring.schemas</resource>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.springframework.shell.Bootstrap</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             
+            <!-- Run integration tests. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>

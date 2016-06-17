@@ -20,10 +20,8 @@ package mvm.rya.shell.command;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import mvm.rya.shell.RyaShell;
-
 /**
- * One of the {@link RyaShell} commands could not be executed because teh specified
+ * One of the Rya Shell commands could not be executed because the specified
  * instance of Rya does not exist.
  */
 @ParametersAreNonnullByDefault

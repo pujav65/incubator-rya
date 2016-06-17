@@ -1,0 +1,189 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package mvm.rya.shell.command;
+
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.concurrent.Immutable;
+
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.security.Authorizations;
+
+import mvm.rya.shell.command.accumulo.administrative.AccumuloCreatePCJ;
+import mvm.rya.shell.command.accumulo.administrative.AccumuloDeletePCJ;
+import mvm.rya.shell.command.accumulo.administrative.AccumuloGetInstanceDetails;
+import mvm.rya.shell.command.accumulo.administrative.AccumuloInstall;
+import mvm.rya.shell.command.accumulo.administrative.AccumuloListInstances;
+import mvm.rya.shell.command.accumulo.administrative.AccumuloUninstall;
+import mvm.rya.shell.command.accumulo.data.AccumuloBrowseStatements;
+import mvm.rya.shell.command.accumulo.data.AccumuloLoadStatement;
+import mvm.rya.shell.command.accumulo.data.AccumuloLoadStatementsFile;
+import mvm.rya.shell.command.accumulo.data.AccumuloQuery;
+import mvm.rya.shell.command.administrative.CreatePCJ;
+import mvm.rya.shell.command.administrative.DeletePCJ;
+import mvm.rya.shell.command.administrative.GetInstanceDetails;
+import mvm.rya.shell.command.administrative.Install;
+import mvm.rya.shell.command.administrative.ListInstances;
+import mvm.rya.shell.command.administrative.Uninstall;
+import mvm.rya.shell.command.data.BrowseStatements;
+import mvm.rya.shell.command.data.LoadStatement;
+import mvm.rya.shell.command.data.LoadStatementsFile;
+import mvm.rya.shell.command.data.Query;
+
+/**
+ * Provides access to a set of initialized Rya commands.
+ */
+@Immutable
+@ParametersAreNonnullByDefault
+public class RyaCommands {
+    // Administrative commands that may be invoked. These are initialized whenever a store is connected to.
+    private final Install install;
+    private final CreatePCJ createPcj;
+    private final DeletePCJ deletePcJ;
+    private final GetInstanceDetails getInstanceDetails;
+    private final ListInstances listInstances;
+    private final Uninstall uninstall;
+
+    // Data commands that may be invoked. These are initialized whenever a store is connected to.
+    private final BrowseStatements browseStatements;
+    private final LoadStatement loadStatement;
+    private final LoadStatementsFile loadStatementsFile;
+    private final Query query;
+
+    /**
+     * To construct an instance of this class, use one of the factory methods.
+     */
+    private RyaCommands(
+            final Install install,
+            final CreatePCJ createPcj,
+            final DeletePCJ deletePcJ,
+            final GetInstanceDetails getInstanceDetails,
+            final ListInstances listInstances,
+            final Uninstall uninstall,
+            final BrowseStatements browseStatements,
+            final LoadStatement loadStatement,
+            final LoadStatementsFile loadStatementsFile,
+            final Query query) {
+        this.install = install;
+        this.createPcj = createPcj;
+        this.deletePcJ = deletePcJ;
+        this.getInstanceDetails = getInstanceDetails;
+        this.listInstances = listInstances;
+        this.uninstall = uninstall;
+        this.browseStatements = browseStatements;
+        this.loadStatement = loadStatement;
+        this.loadStatementsFile = loadStatementsFile;
+        this.query = query;
+    }
+
+    /**
+     * @return An instance of {@link Install} that is connected to a Rya storage.
+     */
+    public Install getInstall() {
+        return install;
+    }
+
+    /**
+     * @return An instance of {@link CreatePCJ} that is connected to a Rya storage.
+     */
+    public CreatePCJ getCreatePCJ() {
+        return createPcj;
+    }
+
+    /**
+     * @return An instance of {@link DeletePCJ} that is connected to a Rya storage.
+     */
+    public DeletePCJ getDeletePCJ() {
+        return deletePcJ;
+    }
+
+    /**
+     * @return An instance of {@link GetInstanceDetails} that is connected to a Rya storage.
+     */
+    public GetInstanceDetails getGetInstanceDetails() {
+        return getInstanceDetails;
+    }
+
+    /**
+     * @return An instance of {@link ListInstances} that is connected to a Rya storage.
+     */
+    public ListInstances getListInstances() {
+        return listInstances;
+    }
+
+    /**
+     * @return An instance of {@link Uninstall} that is connected to a Rya storage.
+     */
+    public Uninstall getUninstall() {
+        return uninstall;
+    }
+
+    /**
+     * @return An instance of {@link BrowseStatements} that is connected to a Rya storage.
+     */
+    public BrowseStatements getBrowseStatements() {
+        return browseStatements;
+    }
+
+    /**
+     * @return An instance of {@link LoadStatement} that is connected to a Rya storage.
+     */
+    public LoadStatement getLoadStatements() {
+        return loadStatement;
+    }
+
+    /**
+     * @return An instance of {@link LoadStatementsFile} that is connected to a Rya storage.
+     */
+    public LoadStatementsFile getLoadStatementsFile() {
+        return loadStatementsFile;
+    }
+
+    /**
+     * @return An instance of {@link Query} that is connected to a Rya storage.
+     */
+    public Query getQuery() {
+        return query;
+    }
+
+    /**
+     * Initialize a set of {@link RyaCommands} that will interact with an instance of Accumulo.
+     *
+     * @param connector - The Accumulo connector the commands will use. (not null)
+     * @param authorizations - The user authorizations the commands will use. (not null)
+     * @return The initialized commands.
+     */
+    public static RyaCommands buildAccumuloCommands(final Connector connector, final Authorizations authorizations) {
+        requireNonNull(connector);
+        requireNonNull(authorizations);
+
+        return new RyaCommands(
+                new AccumuloInstall(connector, authorizations),
+                new AccumuloCreatePCJ(connector, authorizations),
+                new AccumuloDeletePCJ(connector, authorizations),
+                new AccumuloGetInstanceDetails(connector, authorizations),
+                new AccumuloListInstances(connector, authorizations),
+                new AccumuloUninstall(connector, authorizations),
+                new AccumuloBrowseStatements(connector, authorizations),
+                new AccumuloLoadStatement(connector, authorizations),
+                new AccumuloLoadStatementsFile(connector, authorizations),
+                new AccumuloQuery(connector, authorizations));
+    }
+}
