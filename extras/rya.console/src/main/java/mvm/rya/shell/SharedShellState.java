@@ -26,8 +26,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import mvm.rya.shell.command.RyaCommands;
 
-// TODO test
-
 /**
  * Holds values that are shared between the various Rya command classes.
  */
