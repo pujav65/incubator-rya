@@ -18,14 +18,15 @@
  */
 package mvm.rya.shell;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
-import mvm.rya.shell.SharedShellState;
+import mvm.rya.shell.SharedShellState.ConnectionState;
+import mvm.rya.shell.SharedShellState.ShellState;
 import mvm.rya.shell.command.RyaCommands;
+import mvm.rya.shell.connection.AccumuloConnectionDetails;
 
 /**
  * Tests the methods of {@link SharedShellState}.
@@ -33,39 +34,134 @@ import mvm.rya.shell.command.RyaCommands;
 public class SharedShellStateTest {
 
     @Test
-    public void isConnected_true() {
+    public void initialStateIsDisconnected() {
         final SharedShellState state = new SharedShellState();
 
-        final RyaCommands commands = mock(RyaCommands.class);
-        state.setConnectedCommands( commands );
+        // Verify disconnected and no values are set.
+        final ShellState expected = ShellState.builder()
+                .setConnectionState(ConnectionState.DISCONNECTED)
+                .build();
 
-        assertTrue( state.isConnected() );
+        assertEquals(expected, state.getShellState());
     }
 
     @Test
-    public void isConnected_false() {
+    public void disconnectedToConnectedToStorage() {
         final SharedShellState state = new SharedShellState();
-        assertFalse( state.isConnected() );
+
+        // Connect to Accumulo.
+        final AccumuloConnectionDetails connectionDetails = mock(AccumuloConnectionDetails.class);
+        final RyaCommands connectedCommands = mock(RyaCommands.class);
+        state.connectedToAccumulo(connectionDetails, connectedCommands);
+
+        // Verify the state.
+        final ShellState expected = ShellState.builder()
+                .setConnectionState(ConnectionState.CONNECTED_TO_STORAGE)
+                .setAccumuloConnectionDetails(connectionDetails)
+                .setConnectedCommands(connectedCommands)
+                .build();
+
+        assertEquals(expected, state.getShellState());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void connectToStorageAgain() {
+        final SharedShellState state = new SharedShellState();
+
+        // Connect to Accumulo.
+        final AccumuloConnectionDetails connectionDetails = mock(AccumuloConnectionDetails.class);
+        final RyaCommands connectedCommands = mock(RyaCommands.class);
+        state.connectedToAccumulo(connectionDetails, connectedCommands);
+
+        // Try to set the information again.
+        state.connectedToAccumulo(connectionDetails, connectedCommands);
     }
 
     @Test
-    public void setConnectedCommands() {
+    public void connectedToInstance() {
         final SharedShellState state = new SharedShellState();
 
-        final RyaCommands commands = mock(RyaCommands.class);
-        state.setConnectedCommands( commands );
+        // Connect to Accumulo.
+        final AccumuloConnectionDetails connectionDetails = mock(AccumuloConnectionDetails.class);
+        final RyaCommands connectedCommands = mock(RyaCommands.class);
+        state.connectedToAccumulo(connectionDetails, connectedCommands);
 
-        assertTrue( state.getConnectedCommands().isPresent() );
+        // Connect to an Instance.
+        state.connectedToInstance("instance");
+
+        // Verify the state.
+        final ShellState expected = ShellState.builder()
+                .setConnectionState(ConnectionState.CONNECTED_TO_INSTANCE)
+                .setAccumuloConnectionDetails(connectionDetails)
+                .setConnectedCommands(connectedCommands)
+                .setInstanceName("instance")
+                .build();
+
+        assertEquals(expected, state.getShellState());
     }
 
     @Test
-    public void clearConnectedCommands() {
+    public void ConnectedToInstanceAgain() {
         final SharedShellState state = new SharedShellState();
 
-        final RyaCommands commands = mock(RyaCommands.class);
-        state.setConnectedCommands( commands );
-        state.clearConnectedCommands();
+        // Connect to Accumulo.
+        final AccumuloConnectionDetails connectionDetails = mock(AccumuloConnectionDetails.class);
+        final RyaCommands connectedCommands = mock(RyaCommands.class);
+        state.connectedToAccumulo(connectionDetails, connectedCommands);
 
-        assertFalse( state.getConnectedCommands().isPresent() );
+        // Connect to an Instance.
+        state.connectedToInstance("instance");
+
+        // Connect to another instance.
+        state.connectedToInstance("secondInstance");
+
+        // Verify the state.
+        final ShellState expected = ShellState.builder()
+                .setConnectionState(ConnectionState.CONNECTED_TO_INSTANCE)
+                .setAccumuloConnectionDetails(connectionDetails)
+                .setConnectedCommands(connectedCommands)
+                .setInstanceName("secondInstance")
+                .build();
+        assertEquals(expected, state.getShellState());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void connectedToInstanceWhileDisconnectedFromStorage() {
+        final SharedShellState state = new SharedShellState();
+
+        state.connectedToInstance("instance");
+    }
+
+    @Test
+    public void disconnected() {
+        final SharedShellState state = new SharedShellState();
+
+        // Connect to Accumulo and an instance.
+        final AccumuloConnectionDetails connectionDetails = mock(AccumuloConnectionDetails.class);
+        final RyaCommands connectedCommands = mock(RyaCommands.class);
+        state.connectedToAccumulo(connectionDetails, connectedCommands);
+        state.connectedToInstance("instance");
+
+        // Disconnect.
+        state.disconnected();
+
+        // Verify the state.
+        final ShellState expected = ShellState.builder()
+                .setConnectionState(ConnectionState.DISCONNECTED)
+                .build();
+        assertEquals(expected, state.getShellState());
+    }
+
+    @Test
+    public void disconnectedAgain() {
+        // Indicate we have diconnected while already in the disconnected state.
+        final SharedShellState state = new SharedShellState();
+        state.disconnected();
+
+        // Verify the state.
+        final ShellState expected = ShellState.builder()
+                .setConnectionState(ConnectionState.DISCONNECTED)
+                .build();
+        assertEquals(expected, state.getShellState());
     }
 }

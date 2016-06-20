@@ -18,10 +18,15 @@
  */
 package mvm.rya.shell;
 
+import static java.util.Objects.requireNonNull;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.support.DefaultPromptProvider;
 import org.springframework.stereotype.Component;
+
+import mvm.rya.shell.SharedShellState.ShellState;
 
 /**
  * Customizes the Rya Shell's prompt.
@@ -30,8 +35,28 @@ import org.springframework.stereotype.Component;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RyaPromptProvider extends DefaultPromptProvider {
 
+    private final SharedShellState sharedState;
+
+    @Autowired
+    public RyaPromptProvider(final SharedShellState sharedState) {
+        this.sharedState = requireNonNull(sharedState);
+    }
+
     @Override
     public String getPrompt() {
-        return "rya>";
+        final ShellState state = sharedState.getShellState();
+
+        switch(state.getConnectionState()) {
+            case DISCONNECTED:
+                return "rya>";
+            case CONNECTED_TO_STORAGE:
+                return String.format("rya/%s>", state.getConnectionDetails().get().getInstanceName());
+            case CONNECTED_TO_INSTANCE:
+                return String.format("rya/%s:%s>",
+                        state.getConnectionDetails().get().getInstanceName(),
+                        state.getConnectedInstanceName().get());
+            default:
+                return "rya>";
+        }
     }
 }
