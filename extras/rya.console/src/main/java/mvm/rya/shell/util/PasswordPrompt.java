@@ -54,14 +54,14 @@ public interface PasswordPrompt {
 
             System.out.print("Password: ");
             final ConsoleReader reader = new ConsoleReader();
-            final String passwordStr = reader.readLine('*');
+            String passwordStr = reader.readLine('*');
             password = passwordStr.toCharArray();
 
             // Reading the password into memory as a String is less safe than a char[]
             // because the String is immutable. We can't clear it out. At best, we can
             // remove all references to it and suggest the GC clean it up. There are no
             // guarantees though.
-            password = null;
+            passwordStr = null;
             System.gc();
 
             return password;
