@@ -36,6 +36,11 @@
         <constructor-arg value="mvm.rya.shell.util.PasswordPrompt" />
     </bean>
     
+    <!-- We use a mock Install Prompt here to simulate a user entering the installation configuration. -->
+    <bean id="installPrompt" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="mvm.rya.shell.util.InstallPrompt"/>
+    </bean>
+        
     <!-- Define each of the beans that hold onto commands used by the shell. -->
     <bean id="ryaConnectionCommands" class="mvm.rya.shell.RyaConnectionCommands" />
     <bean id="ryaAdminCommands" class="mvm.rya.shell.RyaAdminCommands" />

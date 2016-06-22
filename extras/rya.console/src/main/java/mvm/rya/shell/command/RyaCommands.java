@@ -145,7 +145,7 @@ public class RyaCommands {
     /**
      * @return An instance of {@link LoadStatement} that is connected to a Rya storage.
      */
-    public LoadStatement getLoadStatements() {
+    public LoadStatement getLoadStatement() {
         return loadStatement;
     }
 

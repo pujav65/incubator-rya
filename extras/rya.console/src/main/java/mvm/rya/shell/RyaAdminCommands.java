@@ -154,10 +154,17 @@ public class RyaAdminCommands implements CommandMarker {
         final RyaCommands commands = state.getShellState().getConnectedCommands().get();
 
         String instanceName = null;
+        InstallConfiguration installConfig = null;
         try {
-            // Use the install prompt to fetch the user's installation options.
-            instanceName = installPrompt.getInstanceName();
-            final InstallConfiguration installConfig = installPrompt.getInstallConfiguration();
+            boolean verified = false;
+            while(!verified) {
+                // Use the install prompt to fetch the user's installation options.
+                instanceName = installPrompt.promptInstanceName();
+                installConfig = installPrompt.promptInstallConfiguration();
+
+                // Verify the configuration is what the user actually wants to do.
+                verified = installPrompt.promptVerified(instanceName, installConfig);
+            }
 
             // Execute the command.
             commands.getInstall().install(instanceName, installConfig);

@@ -54,7 +54,7 @@ public class RyaPromptProvider extends DefaultPromptProvider {
             case CONNECTED_TO_INSTANCE:
                 return String.format("rya/%s:%s>",
                         state.getConnectionDetails().get().getInstanceName(),
-                        state.getConnectedInstanceName().get());
+                        state.getRyaInstanceName().get());
             default:
                 return "rya>";
         }

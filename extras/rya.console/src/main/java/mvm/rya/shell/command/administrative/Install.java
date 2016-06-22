@@ -18,6 +18,8 @@
  */
 package mvm.rya.shell.command.administrative;
 
+import java.util.Objects;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
@@ -125,6 +127,41 @@ public interface Install {
             return enablePcjIndex;
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(
+                    enableTableHashPrefix,
+                    enableFreeTextIndex,
+                    enableGeoIndex,
+                    enableEntityCentricIndex,
+                    enableTemporalIndex,
+                    enablePcjIndex);
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if(this == obj) {
+                return true;
+            }
+            if(obj instanceof InstallConfiguration) {
+                final InstallConfiguration config = (InstallConfiguration) obj;
+                return enableTableHashPrefix == config.enableTableHashPrefix &&
+                        enableFreeTextIndex == config.enableFreeTextIndex &&
+                        enableGeoIndex == config.enableGeoIndex &&
+                        enableEntityCentricIndex == config.enableEntityCentricIndex &&
+                        enableTemporalIndex == config.enableTemporalIndex &&
+                        enablePcjIndex == config.enablePcjIndex;
+            }
+            return false;
+        }
+
+        /**
+         * @return An empty instance of {@link Builder}.
+         */
+        public static Builder builder() {
+            return new Builder();
+        }
+
         /**
          * Builds instances of {@link InstallConfiguration}.
          */
@@ -160,7 +197,7 @@ public interface Install {
              * @return This {@link Builder} so that method invocations may be chained.
              */
             public Builder setEnableGeoIndex(final boolean enabled) {
-                enableGeoIndex = true;
+                enableGeoIndex = enabled;
                 return this;
             }
 
@@ -169,7 +206,7 @@ public interface Install {
              * @return This {@link Builder} so that method invocations may be chained.
              */
             public Builder setEnableEntityCentricIndex(final boolean enabled) {
-                enableEntityCentricIndex = true;
+                enableEntityCentricIndex = enabled;
                 return this;
             }
 
@@ -178,7 +215,7 @@ public interface Install {
              * @return This {@link Builder} so that method invocations may be chained.
              */
             public Builder setEnableTemporalIndex(final boolean enabled) {
-                enableTemporalIndex = true;
+                enableTemporalIndex = enabled;
                 return this;
             }
 
@@ -187,7 +224,7 @@ public interface Install {
              * @return This {@link Builder} so that method invocations may be chained.
              */
             public Builder setEnablePcjIndex(final boolean enabled) {
-                enablePcjIndex = true;
+                enablePcjIndex = enabled;
                 return this;
             }
 

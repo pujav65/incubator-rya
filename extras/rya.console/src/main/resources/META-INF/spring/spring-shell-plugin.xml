@@ -31,6 +31,7 @@
     <!-- Define the shell state bean that will be shared across all of the commands. -->
     <bean id="sharedShellState" class="mvm.rya.shell.SharedShellState" />
     <bean id="passwordPrompt" class="mvm.rya.shell.util.PasswordPrompt.JLinePasswordPrompt" />
+    <bean id="installPrompt" class="mvm.rya.shell.util.InstallPrompt.JLineInstallPrompt" />
     
     <!-- Define each of the beans that hold onto commands used by the shell. -->
     <bean id="ryaConnectionCommands" class="mvm.rya.shell.RyaConnectionCommands" />

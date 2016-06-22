@@ -216,8 +216,9 @@ public class RyaAdminCommandsTest {
                 .build();
 
         final InstallPrompt mockInstallPrompt = mock(InstallPrompt.class);
-        when(mockInstallPrompt.getInstanceName()).thenReturn( instanceName );
-        when(mockInstallPrompt.getInstallConfiguration()).thenReturn( installConfig );
+        when(mockInstallPrompt.promptInstanceName()).thenReturn( instanceName );
+        when(mockInstallPrompt.promptInstallConfiguration()).thenReturn( installConfig );
+        when(mockInstallPrompt.promptVerified(eq(instanceName), eq(installConfig))).thenReturn(true);
 
         final RyaAdminCommands commands = new RyaAdminCommands(state, mockInstallPrompt);
         final String message = commands.install();

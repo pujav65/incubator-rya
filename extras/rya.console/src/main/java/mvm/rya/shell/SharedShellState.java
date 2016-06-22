@@ -113,7 +113,7 @@ public class SharedShellState {
             // Set the instance name.
             shellState = ShellState.builder( shellState )
                     .setConnectionState(ConnectionState.CONNECTED_TO_INSTANCE)
-                    .setInstanceName( instanceName )
+                    .setRyaInstanceName( instanceName )
                     .build();
         } finally {
             lock.unlock();
@@ -212,7 +212,7 @@ public class SharedShellState {
          *   The value will not be present if the Rya Shell is not connected to a
          *   storage or if a target instance has not been set yet.
          */
-        public Optional<String> getConnectedInstanceName() {
+        public Optional<String> getRyaInstanceName() {
             return instanceName;
         }
 
@@ -283,7 +283,7 @@ public class SharedShellState {
                 this.connectionState = shellState.getConnectionState();
                 this.connectionDetails = shellState.getConnectionDetails().orElse( null );
                 this.connectedCommands = shellState.getConnectedCommands().orElse( null );
-                this.instanceName = shellState.getConnectedInstanceName().orElse( null );
+                this.instanceName = shellState.getRyaInstanceName().orElse( null );
             }
 
             /**
@@ -317,7 +317,7 @@ public class SharedShellState {
              * @param instanceName - The name of the Rya Instance the Rya Shell is issuing commands to.
              * @return This {@link Builder} so that method invocations may be chained.
              */
-            public Builder setInstanceName(@Nullable final String instanceName) {
+            public Builder setRyaInstanceName(@Nullable final String instanceName) {
                 this.instanceName = instanceName;
                 return this;
             }

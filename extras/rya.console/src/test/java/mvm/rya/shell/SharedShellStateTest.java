@@ -94,7 +94,7 @@ public class SharedShellStateTest {
                 .setConnectionState(ConnectionState.CONNECTED_TO_INSTANCE)
                 .setAccumuloConnectionDetails(connectionDetails)
                 .setConnectedCommands(connectedCommands)
-                .setInstanceName("instance")
+                .setRyaInstanceName("instance")
                 .build();
 
         assertEquals(expected, state.getShellState());
@@ -120,7 +120,7 @@ public class SharedShellStateTest {
                 .setConnectionState(ConnectionState.CONNECTED_TO_INSTANCE)
                 .setAccumuloConnectionDetails(connectionDetails)
                 .setConnectedCommands(connectedCommands)
-                .setInstanceName("secondInstance")
+                .setRyaInstanceName("secondInstance")
                 .build();
         assertEquals(expected, state.getShellState());
     }
