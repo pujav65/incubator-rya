@@ -54,7 +54,7 @@ public class AccumuloLoadStatementsFile extends AccumuloCommand implements LoadS
     public void load(final String instanceName, final Path statementsFile, final StatementFileFormat format)
             throws InstanceDoesNotExistException, CommandException {
         // TODO Auto-generated method stub
-
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 
 }

@@ -54,5 +54,6 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
         // NOTE: This needs to initialize instance's details in the RyaDetailsRepository
         // as well as actually create all of the indexes what will be maintained.
 
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

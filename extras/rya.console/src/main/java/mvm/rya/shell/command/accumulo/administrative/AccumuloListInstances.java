@@ -56,6 +56,6 @@ public class AccumuloListInstances extends AccumuloCommand implements ListInstan
         // Iterate through all of the SPO tables that are in accumulo and return their prefixes.
         // If all of them have been installed correctly, we could iterate through the instance details tables.
 
-        return null;
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

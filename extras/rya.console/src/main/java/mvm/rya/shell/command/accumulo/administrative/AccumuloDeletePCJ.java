@@ -55,5 +55,7 @@ public class AccumuloDeletePCJ extends AccumuloCommand implements DeletePCJ {
         // NOTE: This command will need to query the Rya instance's RyaDetailsRepository
         // to determine how the PCJ is being maintained. If it's being maintained by Fluo, then
         // that job must be stopped as well as deleting the PCJ Index from Accumulo.
+
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

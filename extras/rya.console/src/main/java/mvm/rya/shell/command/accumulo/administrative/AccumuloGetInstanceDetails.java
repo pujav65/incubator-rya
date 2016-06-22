@@ -55,6 +55,6 @@ public class AccumuloGetInstanceDetails extends AccumuloCommand implements GetIn
 
         // NOTE: Just return what the RyaDetailsRepository is storing.
 
-        return null;
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

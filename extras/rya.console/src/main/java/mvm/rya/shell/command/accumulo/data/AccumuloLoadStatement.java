@@ -52,5 +52,6 @@ public class AccumuloLoadStatement extends AccumuloCommand implements LoadStatem
     @Override
     public void loadStatement(final String instanceName, final Statement statement) throws InstanceDoesNotExistException, CommandException {
         // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

@@ -54,5 +54,7 @@ public class AccumuloUninstall extends AccumuloCommand implements Uninstall {
 
         // NOTE: If Fluo is being used to maintain the PCJs for this application, also
         // stop/uninstall that job.
+
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

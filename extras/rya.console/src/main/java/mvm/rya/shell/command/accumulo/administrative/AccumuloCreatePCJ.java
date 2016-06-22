@@ -55,6 +55,6 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
         // NOTE: This command must query the Rya instance's RyaDetailsRepository to see how
         // PCJs are being maintained.
 
-        return null;
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

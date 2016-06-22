@@ -54,6 +54,6 @@ public class AccumuloQuery extends AccumuloCommand implements Query {
     @Override
     public Iterator<BindingSet> queryInstance(final String instanceName, final String sparql) throws InstanceDoesNotExistException, CommandException {
         // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

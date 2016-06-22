@@ -54,6 +54,6 @@ public class AccumuloBrowseStatements extends AccumuloCommand implements BrowseS
     @Override
     public Iterator<Statement> browse(final String instanceName) throws InstanceDoesNotExistException, CommandException {
         // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }
