@@ -47,13 +47,14 @@ public interface PasswordPrompt {
      * garbage collect the String after converting it to a character array, but
      * this could be improved.
      */
-    public static class JLinePasswordPrompt implements PasswordPrompt {
+    public static class JLinePasswordPrompt extends JLinePrompt implements PasswordPrompt {
+
         @Override
         public char[] getPassword() throws IOException {
             char[] password = new char[0];
 
-            System.out.print("Password: ");
-            final ConsoleReader reader = new ConsoleReader();
+            final ConsoleReader reader = getReader();
+            reader.setPrompt("Password: ");
             String passwordStr = reader.readLine('*');
             password = passwordStr.toCharArray();
 
