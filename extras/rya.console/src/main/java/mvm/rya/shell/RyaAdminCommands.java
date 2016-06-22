@@ -43,8 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
@@ -68,7 +66,6 @@ import mvm.rya.shell.util.RyaDetailsFormatter;
  */
 @Component
 public class RyaAdminCommands implements CommandMarker {
-    private static final Logger log = LoggerFactory.getLogger(RyaAdminCommands.class);
 
     public static final String CREATE_PCJ_CMD = "create-pcj";
     public static final String DELETE_PCJ_CMD = "delete-pcj";
@@ -120,7 +117,7 @@ public class RyaAdminCommands implements CommandMarker {
     }
 
     @CliCommand(value = LIST_INSTANCES_CMD, help = "List the names of the installed Rya instances.")
-    public String listInstances() throws IOException {
+    public String listInstances() {
         // Fetch the command that is connected to the store.
         final ShellState shellState = state.getShellState();
         final RyaCommands commands = shellState.getConnectedCommands().get();
@@ -132,24 +129,21 @@ public class RyaAdminCommands implements CommandMarker {
             Collections.sort( instanceNames );
 
             String report;
-
             final InstanceNamesFormatter formatter = new InstanceNamesFormatter();
             if(ryaInstance.isPresent()) {
                 report = formatter.format(instanceNames, ryaInstance.get());
             } else {
                 report = formatter.format(instanceNames);
             }
-
             return report;
 
         } catch (final CommandException e) {
-            log.error("Can not list the Rya instances.", e);
-            return "Can not list the Rya instances. Reason: " + e.getMessage();
+            throw new RuntimeException("Can not list the Rya instances. Reason: " + e.getMessage(), e);
         }
     }
 
     @CliCommand(value = INSTALL_CMD, help = "Create a new instance of Rya.")
-    public String install() throws IOException {
+    public String install() {
         // Fetch the commands that are connected to the store.
         final RyaCommands commands = state.getShellState().getConnectedCommands().get();
 
@@ -171,10 +165,9 @@ public class RyaAdminCommands implements CommandMarker {
             return String.format("The Rya instance named '%s' has been installed.", instanceName);
 
         } catch(final DuplicateInstanceNameException e) {
-            return String.format("A Rya instance named '%s' already exists. Try again with a different name.", instanceName);
-        } catch (final CommandException e) {
-            log.error("Could not install a new instance of Rya.", e);
-            return "Could not install a new instance of Rya.";
+            throw new RuntimeException(String.format("A Rya instance named '%s' already exists. Try again with a different name.", instanceName), e);
+        } catch (final IOException | CommandException e) {
+            throw new RuntimeException("Could not install a new instance of Rya. Reason: " + e.getMessage(), e);
         }
     }
 
@@ -190,10 +183,9 @@ public class RyaAdminCommands implements CommandMarker {
             return new RyaDetailsFormatter().format(details);
 
         } catch(final InstanceDoesNotExistException e) {
-            return String.format("A Rya instance named '%s' does not exist.", ryaInstance);
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
         } catch (final CommandException e) {
-            log.error("Could not get the instance details.", e);
-            return "Could not get the instance details. Reason: " + e.getMessage();
+            throw new RuntimeException("Could not get the instance details. Reason: " + e.getMessage(), e);
         }
     }
 
@@ -212,10 +204,9 @@ public class RyaAdminCommands implements CommandMarker {
             // Return a message that indicates the ID of the newly created ID.
             return String.format("The PCJ has been created. Its ID is '%s'.", pcjId);
         } catch (final InstanceDoesNotExistException e) {
-            return String.format("A Rya instance named '%s' does not exist.", ryaInstance);
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
         } catch (final CommandException e) {
-            log.error("Could not create a new PCJ for Rya instance '" + ryaInstance + "'.", e);
-            return "Could not create the PCJ. Provided reasons: " + e.getMessage();
+            throw new RuntimeException("Could not create the PCJ. Provided reasons: " + e.getMessage(), e);
         }
     }
 
@@ -234,10 +225,9 @@ public class RyaAdminCommands implements CommandMarker {
             return "The PCJ has been deleted.";
 
         } catch (final InstanceDoesNotExistException e) {
-            return String.format("A Rya instance named '%s' does not exist.", ryaInstance);
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
         } catch (final CommandException e) {
-            log.error("Could not delete a new PCJ for Rya instance '" + ryaInstance + "'.", e);
-            return "The PCJ could not be deleted. Provided reason: " + e.getMessage();
+            throw new RuntimeException("The PCJ could not be deleted. Provided reason: " + e.getMessage(), e);
         }
     }
 
@@ -253,10 +243,9 @@ public class RyaAdminCommands implements CommandMarker {
             return String.format("Rya instance named '%s' uninstalled.", ryaInstance);
 
         } catch (final InstanceDoesNotExistException e) {
-            return String.format("A Rya instance named '%s' does not exist.", ryaInstance);
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
         } catch (final CommandException e) {
-            log.error("Could not uninstall the Rya instances named: " + ryaInstance, e);
-            return String.format("Could not uninstall the Rya instance named '%s'. Reason: %s", ryaInstance, e.getMessage());
+            throw new RuntimeException(String.format("Could not uninstall the Rya instance named '%s'. Reason: %s", ryaInstance, e.getMessage()), e);
         }
     }
 }
