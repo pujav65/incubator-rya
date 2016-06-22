@@ -19,6 +19,7 @@
 package mvm.rya.shell;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +32,11 @@ import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 
+import mvm.rya.shell.SharedShellState.ConnectionState;
+import mvm.rya.shell.SharedShellState.ShellState;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
+import mvm.rya.shell.command.administrative.Install.InstallConfiguration;
+import mvm.rya.shell.util.InstallPrompt;
 import mvm.rya.shell.util.PasswordPrompt;
 
 /**
@@ -108,9 +114,8 @@ public class RyaConnectionCommandsIT extends RyaShellITBase {
 
         final CommandResult connectResult = shell.executeCommand(cmd);
 
-        // Ensure the command didn't throw an exception, so it's marked as successful.
-        // We print a message indicating what went wrong to the console.
-        assertTrue( connectResult.isSuccess() );
+        // Ensure the command failed.
+        assertFalse( connectResult.isSuccess() );
     }
 
     @Test
@@ -156,6 +161,76 @@ public class RyaConnectionCommandsIT extends RyaShellITBase {
                 "    Zookeepers: " + cluster.getZooKeepers() + "\n" +
                 "    Authorizations: u";
         assertEquals(expected, msg);
+    }
+
+    @Test
+    public void connectToInstance() throws IOException {
+        final MiniAccumuloCluster cluster = getTestCluster();
+        final Bootstrap bootstrap = getTestBootstrap();
+        final JLineShellComponent shell = getTestShell();
+
+        // Mock the user entering the correct password.
+        final ApplicationContext context = bootstrap.getApplicationContext();
+        final PasswordPrompt mockPrompt = context.getBean( PasswordPrompt.class );
+        when(mockPrompt.getPassword()).thenReturn("password".toCharArray());
+
+        // Connect to the mini accumulo instance.
+        String cmd =
+                RyaConnectionCommands.CONNECT_ACCUMULO_CMD + " " +
+                        "--username root " +
+                        "--instanceName " + cluster.getInstanceName() + " "+
+                        "--zookeepers " + cluster.getZooKeepers() + " " +
+                        "--auths u";
+        CommandResult result = shell.executeCommand(cmd);
+
+        // Install an instance of rya.
+        final String instanceName = "testInstance";
+        final InstallConfiguration installConf = InstallConfiguration.builder().build();
+
+        final InstallPrompt installPrompt = context.getBean( InstallPrompt.class );
+        when(installPrompt.promptInstanceName()).thenReturn("testInstance");
+        when(installPrompt.promptInstallConfiguration()).thenReturn( installConf );
+        when(installPrompt.promptVerified(instanceName, installConf)).thenReturn(true);
+
+        result = shell.executeCommand( RyaAdminCommands.INSTALL_CMD );
+        assertTrue( result.isSuccess() );
+
+        // Connect to the instance that was just installed.
+        cmd = RyaConnectionCommands.CONNECT_INSTANCE_CMD + " --instance " + instanceName;
+        result = shell.executeCommand(cmd);
+        assertTrue( result.isSuccess() );
+
+        // Verify the shell state indicates it is connected to an instance.
+        final SharedShellState sharedState = context.getBean( SharedShellState.class );
+        final ShellState state = sharedState.getShellState();
+        assertEquals(ConnectionState.CONNECTED_TO_INSTANCE, state.getConnectionState());
+    }
+
+    @Test
+    public void connectToInstance_instanceDoesNotExist() throws IOException {
+        final MiniAccumuloCluster cluster = getTestCluster();
+        final Bootstrap bootstrap = getTestBootstrap();
+        final JLineShellComponent shell = getTestShell();
+
+        // Mock the user entering the correct password.
+        final ApplicationContext context = bootstrap.getApplicationContext();
+        final PasswordPrompt mockPrompt = context.getBean( PasswordPrompt.class );
+        when(mockPrompt.getPassword()).thenReturn("password".toCharArray());
+
+        // Connect to the mini accumulo instance.
+        String cmd =
+                RyaConnectionCommands.CONNECT_ACCUMULO_CMD + " " +
+                        "--username root " +
+                        "--instanceName " + cluster.getInstanceName() + " "+
+                        "--zookeepers " + cluster.getZooKeepers() + " " +
+                        "--auths u";
+        shell.executeCommand(cmd);
+
+        // Try to connect to a non-existing instance.
+        cmd = RyaConnectionCommands.CONNECT_INSTANCE_CMD + " --instance doesNotExist";
+        final CommandResult result = shell.executeCommand(cmd);
+        assertFalse( result.isSuccess() );
+        assertEquals(InstanceDoesNotExistException.class, result.getException().getClass());
     }
 
     @Test

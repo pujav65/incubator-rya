@@ -23,8 +23,8 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.Arrays;
-
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
+import java.util.Optional;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -37,9 +37,12 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Optional;
-
+import mvm.rya.shell.SharedShellState.ConnectionState;
+import mvm.rya.shell.command.CommandException;
+import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.RyaCommands;
+import mvm.rya.shell.command.administrative.ListInstances;
+import mvm.rya.shell.connection.AccumuloConnectionDetails;
 import mvm.rya.shell.util.ConnectorFactory;
 import mvm.rya.shell.util.PasswordPrompt;
 
@@ -52,9 +55,8 @@ public class RyaConnectionCommands implements CommandMarker {
     // Command line commands.
     public static final String PRINT_CONNECTION_DETAILS_CMD = "print-connection-details";
     public static final String CONNECT_ACCUMULO_CMD = "connect-accumulo";
+    public static final String CONNECT_INSTANCE_CMD = "connect-to-instance";
     public static final String DISCONNECT_COMMAND_NAME_CMD = "disconnect";
-
-    private Optional<AccumuloConnectionDetails> accumuloDetails = Optional.absent();
 
     private final SharedShellState sharedState;
     private final PasswordPrompt passwordPrompt;
@@ -78,30 +80,39 @@ public class RyaConnectionCommands implements CommandMarker {
 
     @CliAvailabilityIndicator({CONNECT_ACCUMULO_CMD})
     public boolean areConnectCommandsAvailable() {
-        return !sharedState.isConnected();
+        return sharedState.getShellState().getConnectionState() == ConnectionState.DISCONNECTED;
+    }
+
+    @CliAvailabilityIndicator({CONNECT_INSTANCE_CMD})
+    public boolean isConnectToInstanceAvailable() {
+        switch(sharedState.getShellState().getConnectionState()) {
+            case CONNECTED_TO_STORAGE:
+            case CONNECTED_TO_INSTANCE:
+                return true;
+            default:
+                return false;
+        }
     }
 
     @CliAvailabilityIndicator({DISCONNECT_COMMAND_NAME_CMD})
     public boolean isDisconnectAvailable() {
-        return sharedState.isConnected();
+        return sharedState.getShellState().getConnectionState() != ConnectionState.DISCONNECTED;
     }
 
     @CliCommand(value = PRINT_CONNECTION_DETAILS_CMD, help = "Print information about the Shell's Rya storage connection.")
     public String printConnectionDetails() {
-        String report = null;
+        final Optional<AccumuloConnectionDetails> detailsHolder = sharedState.getShellState().getConnectionDetails();
 
-        if(accumuloDetails.isPresent()) {
-            final AccumuloConnectionDetails details = accumuloDetails.get();
-            report = "The shell is connected to an instance of Accumulo using the following parameters:\n" +
+        if(detailsHolder.isPresent()) {
+            final AccumuloConnectionDetails details = detailsHolder.get();
+            return "The shell is connected to an instance of Accumulo using the following parameters:\n" +
                     "    Username: " + details.getUsername() + "\n" +
                     "    Instance Name: " + details.getInstanceName() + "\n" +
                     "    Zookeepers: " + details.getZookeepers() + "\n" +
                     "    Authorizations: " + details.getAuthorizations();
         } else {
-            report = "The shell is not connected to anything.";
+            return "The shell is not connected to anything.";
         }
-
-        return report;
     }
 
     @CliCommand(value = CONNECT_ACCUMULO_CMD, help = "Connect the shell to an instance of Accumulo.")
@@ -114,101 +125,56 @@ public class RyaConnectionCommands implements CommandMarker {
             final String zookeepers,
             @CliOption(key = {"auths"}, mandatory = false, help = "The Accumulo authorizations that will be used by the shell.")
             final String authString
-            ) throws AccumuloException, AccumuloSecurityException {
+            ) throws IOException, CommandException {
 
+        // Prompt the user for their password.
+        final char[] password = passwordPrompt.getPassword();
+
+        // Connect to Accumulo.
+        Connector connector;
         try {
-            // Prompt the user for their password.
-            final char[] password = passwordPrompt.getPassword();
-
-            // Connect to Accumulo.
-            final Connector connector = new ConnectorFactory().connect(username, CharBuffer.wrap(password), instanceName, zookeepers);
-
-            // Clear the password.
-            Arrays.fill(password, '\u0000');
-
-            // Build the RyaCommands that will be used by the shell and put them in the shared state.
-            Authorizations auths;
-            if(authString == null || authString.isEmpty()) {
-                auths = new Authorizations();
-            } else {
-                auths = new Authorizations( authString.split(",") );
-            }
-
-            final RyaCommands commands = RyaCommands.buildAccumuloCommands(connector, auths);
-            sharedState.setConnectedCommands( commands );
-
-            // Store the connection information so that it may be reported back.
-            accumuloDetails = Optional.of( new AccumuloConnectionDetails(username, instanceName, zookeepers, auths.toString()) );
-
-        } catch (AccumuloException | AccumuloSecurityException | IOException e) {
-            // TODO Should probably log this info as well so that you can see the whole stack trace.
-            return e.getMessage();
+            connector = new ConnectorFactory().connect(username, CharBuffer.wrap(password), instanceName, zookeepers);
+        } catch (final AccumuloException| AccumuloSecurityException e) {
+            throw new CommandException("Could not connect to Accumulo. Reason: " + e.getMessage(), e);
         }
 
-        return null;
+        // Clear the password.
+        Arrays.fill(password, '\u0000');
+
+        // Build the RyaCommands that will be used by the shell and put them in the shared state.
+        Authorizations auths;
+        if(authString == null || authString.isEmpty()) {
+            auths = new Authorizations();
+        } else {
+            auths = new Authorizations( authString.split(",") );
+        }
+
+        // Initialize the connected to Accumulo shared state.
+        final AccumuloConnectionDetails accumuloDetails = new AccumuloConnectionDetails(username, instanceName, zookeepers, auths.toString());
+        final RyaCommands commands = RyaCommands.buildAccumuloCommands(connector, auths);
+        sharedState.connectedToAccumulo(accumuloDetails, commands);
+
+        return "Connected. You must select a Rya instance to interact with next.";
+    }
+
+    @CliCommand(value = CONNECT_INSTANCE_CMD, help = "Connect to a specific ")
+    public String connectToInstance(
+            @CliOption(key = {"instance"}, mandatory = true, help = "The name of the Rya Instance the shell will interact with.")
+            final String instance) throws CommandException {
+        // Make sure the requested instances exists.
+        final ListInstances listInstances = sharedState.getShellState().getConnectedCommands().get().getListInstances();
+        final List<String> instances = listInstances.listInstances();
+        if(!instances.contains( instance )) {
+            throw new InstanceDoesNotExistException(String.format("'%s' does not match an existing Rya instance.", instance));
+        }
+
+        // Store the instance name in the shared state.
+        sharedState.connectedToInstance(instance);
+        return "Connected.";
     }
 
     @CliCommand(value = DISCONNECT_COMMAND_NAME_CMD, help = "Disconnect the shell from the Rya storage it is connect to.")
     public void disconnect() {
-        sharedState.clearConnectedCommands();
-        accumuloDetails = Optional.absent();
-    }
-
-    /**
-     * The information that the shell used to connect to Accumulo.
-     */
-    @ParametersAreNonnullByDefault
-    private static final class AccumuloConnectionDetails {
-        private final String username;
-        private final String instanceName;
-        private final String zookeepers;
-        private final String authorizations;
-
-        /**
-         * Constructs an instance of {@link AccumuloConnectionDetails}.
-         *
-         * @param username - The username that was used to establish the connection. (not null)
-         * @param instanceName - The Accumulo instance name that was used to establish the connection. (not null)
-         * @param zookeepers - The list of zookeeper hostname that were used to establish the connection. (not null)
-         * @param authorizations - The authorizations that will be used by the shell when issuing commands. (not null)
-         */
-        public AccumuloConnectionDetails(
-                final String username,
-                final String instanceName,
-                final String zookeepers,
-                final String authorizations) {
-            this.username = requireNonNull(username);
-            this.instanceName = requireNonNull(instanceName);
-            this.zookeepers = requireNonNull(zookeepers);
-            this.authorizations = requireNonNull(authorizations);
-        }
-
-        /**
-         * @return The username that was used to establish the connection.
-         */
-        public String getUsername() {
-            return username;
-        }
-
-        /**
-         * @return The Accumulo instance name that was used to establish the connection.
-         */
-        public String getInstanceName() {
-            return instanceName;
-        }
-
-        /**
-         * @return The list of zookeeper hostname that were used to establish the connection.
-         */
-        public String getZookeepers() {
-            return zookeepers;
-        }
-
-        /**
-         * @return The authorizations that will be used by the shell when issuing commands.
-         */
-        public String getAuthorizations() {
-            return authorizations;
-        }
+        sharedState.disconnected();
     }
 }
