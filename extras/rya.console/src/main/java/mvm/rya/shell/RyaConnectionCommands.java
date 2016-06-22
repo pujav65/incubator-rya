@@ -39,7 +39,6 @@ import org.springframework.stereotype.Component;
 
 import mvm.rya.shell.SharedShellState.ConnectionState;
 import mvm.rya.shell.command.CommandException;
-import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.RyaCommands;
 import mvm.rya.shell.command.administrative.ListInstances;
 import mvm.rya.shell.connection.AccumuloConnectionDetails;
@@ -125,52 +124,54 @@ public class RyaConnectionCommands implements CommandMarker {
             final String zookeepers,
             @CliOption(key = {"auths"}, mandatory = false, help = "The Accumulo authorizations that will be used by the shell.")
             final String authString
-            ) throws IOException, CommandException {
+            ) {
 
-        // Prompt the user for their password.
-        final char[] password = passwordPrompt.getPassword();
-
-        // Connect to Accumulo.
-        Connector connector;
         try {
-            connector = new ConnectorFactory().connect(username, CharBuffer.wrap(password), instanceName, zookeepers);
-        } catch (final AccumuloException| AccumuloSecurityException e) {
-            throw new CommandException("Could not connect to Accumulo. Reason: " + e.getMessage(), e);
+            // Prompt the user for their password.
+            final char[] password = passwordPrompt.getPassword();
+
+            final Connector connector= new ConnectorFactory().connect(username, CharBuffer.wrap(password), instanceName, zookeepers);
+
+            // Clear the password.
+            Arrays.fill(password, '\u0000');
+
+            // Build the RyaCommands that will be used by the shell and put them in the shared state.
+            Authorizations auths;
+            if(authString == null || authString.isEmpty()) {
+                auths = new Authorizations();
+            } else {
+                auths = new Authorizations( authString.split(",") );
+            }
+
+            // Initialize the connected to Accumulo shared state.
+            final AccumuloConnectionDetails accumuloDetails = new AccumuloConnectionDetails(username, instanceName, zookeepers, auths.toString());
+            final RyaCommands commands = RyaCommands.buildAccumuloCommands(connector, auths);
+            sharedState.connectedToAccumulo(accumuloDetails, commands);
+
+        } catch(IOException | AccumuloException | AccumuloSecurityException e) {
+            throw new RuntimeException("Could not connect to Accumulo. Reason: " + e.getMessage(), e);
         }
-
-        // Clear the password.
-        Arrays.fill(password, '\u0000');
-
-        // Build the RyaCommands that will be used by the shell and put them in the shared state.
-        Authorizations auths;
-        if(authString == null || authString.isEmpty()) {
-            auths = new Authorizations();
-        } else {
-            auths = new Authorizations( authString.split(",") );
-        }
-
-        // Initialize the connected to Accumulo shared state.
-        final AccumuloConnectionDetails accumuloDetails = new AccumuloConnectionDetails(username, instanceName, zookeepers, auths.toString());
-        final RyaCommands commands = RyaCommands.buildAccumuloCommands(connector, auths);
-        sharedState.connectedToAccumulo(accumuloDetails, commands);
 
         return "Connected. You must select a Rya instance to interact with next.";
     }
 
     @CliCommand(value = CONNECT_INSTANCE_CMD, help = "Connect to a specific ")
-    public String connectToInstance(
+    public void connectToInstance(
             @CliOption(key = {"instance"}, mandatory = true, help = "The name of the Rya Instance the shell will interact with.")
-            final String instance) throws CommandException {
-        // Make sure the requested instances exists.
-        final ListInstances listInstances = sharedState.getShellState().getConnectedCommands().get().getListInstances();
-        final List<String> instances = listInstances.listInstances();
-        if(!instances.contains( instance )) {
-            throw new InstanceDoesNotExistException(String.format("'%s' does not match an existing Rya instance.", instance));
+            final String instance) {
+        try {
+            // Make sure the requested instances exists.
+            final ListInstances listInstances = sharedState.getShellState().getConnectedCommands().get().getListInstances();
+            final List<String> instances = listInstances.listInstances();
+            if(!instances.contains( instance )) {
+                throw new RuntimeException(String.format("'%s' does not match an existing Rya instance.", instance));
+            }
+        } catch(final CommandException e) {
+            throw new RuntimeException("Could not connect to Rya instance. Reason: " + e.getMessage(), e);
         }
 
         // Store the instance name in the shared state.
         sharedState.connectedToInstance(instance);
-        return "Connected.";
     }
 
     @CliCommand(value = DISCONNECT_COMMAND_NAME_CMD, help = "Disconnect the shell from the Rya storage it is connect to.")
