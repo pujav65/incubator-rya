@@ -19,8 +19,10 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
+
 /**
- * TODO doc
+ * The base class for any integration test that needs to use a {@link MiniAccumuloCluster}.
  */
 public class AccumuloITBase {
 
@@ -34,6 +36,11 @@ public class AccumuloITBase {
      */
     private static List<String> originalTableNames = new ArrayList<>();
 
+    /**
+     * Details about the values that were used to create the connector to the cluster.
+     */
+    private static AccumuloConnectionDetails connectionDetails = null;
+
     @BeforeClass
     public static void startMiniAccumulo() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException {
         // Setup the mini cluster.
@@ -42,8 +49,15 @@ public class AccumuloITBase {
         cluster.start();
 
         // Store a list of the original table names.
-        final Instance instance = new ZooKeeperInstance(cluster.getInstanceName(), cluster.getZooKeepers());
-        final Connector connector = instance.getConnector("root", new PasswordToken("password"));
+        final String username = "root";
+        final char[] password = "password".toCharArray();
+        final String instanceName = cluster.getInstanceName();
+        final String zookeepers = cluster.getZooKeepers();
+        final String auths = "";
+        connectionDetails = new AccumuloConnectionDetails(username, password, instanceName, zookeepers, auths);
+
+        final Instance instance = new ZooKeeperInstance(instanceName, zookeepers);
+        final Connector connector = instance.getConnector(username, new PasswordToken( new String(password) ));
         originalTableNames.addAll( connector.tableOperations().list() );
     }
 
@@ -77,11 +91,16 @@ public class AccumuloITBase {
     }
 
     /**
-     * TODO doc
-     *
-     * @return
+     * @return An accumulo connector that is connected to the mini cluster.
      */
     public Connector getConnector() throws AccumuloException, AccumuloSecurityException {
         return cluster.getConnector("root", "password");
+    }
+
+    /**
+     * @return Details about the values that were used to create the connector to the cluster.
+     */
+    public AccumuloConnectionDetails getConnectionDetails() {
+        return connectionDetails;
     }
 }

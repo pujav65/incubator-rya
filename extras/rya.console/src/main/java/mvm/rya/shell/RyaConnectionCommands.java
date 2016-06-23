@@ -22,7 +22,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.nio.CharBuffer;
-import java.util.Arrays;
 import java.util.Optional;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -39,8 +38,8 @@ import org.springframework.stereotype.Component;
 import mvm.rya.shell.SharedShellState.ConnectionState;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.RyaCommands;
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 import mvm.rya.shell.command.administrative.InstanceExists;
-import mvm.rya.shell.connection.AccumuloConnectionDetails;
 import mvm.rya.shell.util.ConnectorFactory;
 import mvm.rya.shell.util.PasswordPrompt;
 
@@ -128,11 +127,7 @@ public class RyaConnectionCommands implements CommandMarker {
         try {
             // Prompt the user for their password.
             final char[] password = passwordPrompt.getPassword();
-
             final Connector connector= new ConnectorFactory().connect(username, CharBuffer.wrap(password), instanceName, zookeepers);
-
-            // Clear the password.
-            Arrays.fill(password, '\u0000');
 
             // Build the RyaCommands that will be used by the shell and put them in the shared state.
             Authorizations auths;
@@ -143,8 +138,8 @@ public class RyaConnectionCommands implements CommandMarker {
             }
 
             // Initialize the connected to Accumulo shared state.
-            final AccumuloConnectionDetails accumuloDetails = new AccumuloConnectionDetails(username, instanceName, zookeepers, auths.toString());
-            final RyaCommands commands = RyaCommands.buildAccumuloCommands(connector, auths);
+            final AccumuloConnectionDetails accumuloDetails = new AccumuloConnectionDetails(username, password, instanceName, zookeepers, auths.toString());
+            final RyaCommands commands = RyaCommands.buildAccumuloCommands(accumuloDetails, connector, auths);
             sharedState.connectedToAccumulo(accumuloDetails, commands);
 
         } catch(IOException | AccumuloException | AccumuloSecurityException e) {

@@ -29,6 +29,7 @@ import org.openrdf.query.BindingSet;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 import mvm.rya.shell.command.data.Query;
 
 // TODO impl, test
@@ -42,13 +43,14 @@ public class AccumuloQuery extends AccumuloCommand implements Query {
     /**
      * Constructs an instance of {@link AccumuloQuery}.
      *
+     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
      * @param connector - Provides programatic access to the instance of Accumulo
      *   that hosts Rya instance. (not null)
      * @param auths - The authorizations that will be used when interacting with
      *   the instance of Accumulo. (not null)
      */
-    public AccumuloQuery(final Connector connector, final Authorizations auths) {
-        super(connector, auths);
+    public AccumuloQuery(final AccumuloConnectionDetails connectionDetails,final Connector connector, final Authorizations auths) {
+        super(connectionDetails, connector, auths);
     }
 
     @Override

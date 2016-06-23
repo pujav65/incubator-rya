@@ -67,6 +67,8 @@ public interface Install {
         private final boolean enableTemporalIndex;
         private final boolean enablePcjIndex;
 
+        // TODO add option for setting fluo application name here
+
         /**
          * Use a {@link Builder} to create instances of this class.
          */

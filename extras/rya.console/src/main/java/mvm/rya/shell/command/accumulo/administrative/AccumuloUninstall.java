@@ -26,6 +26,7 @@ import org.apache.accumulo.core.security.Authorizations;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 import mvm.rya.shell.command.administrative.Uninstall;
 
 // TODO impl, test
@@ -39,13 +40,14 @@ public class AccumuloUninstall extends AccumuloCommand implements Uninstall {
     /**
      * Constructs an instance of {@link AccumuloUninstall}.
      *
+     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
      * @param connector - Provides programatic access to the instance of Accumulo
      *   that hosts Rya instance. (not null)
      * @param auths - The authorizations that will be used when interacting with
      *   the instance of Accumulo. (not null)
      */
-    public AccumuloUninstall(final Connector connector, final Authorizations auths) {
-        super(connector, auths);
+    public AccumuloUninstall(final AccumuloConnectionDetails connectionDetails, final Connector connector, final Authorizations auths) {
+        super(connectionDetails, connector, auths);
     }
 
     @Override

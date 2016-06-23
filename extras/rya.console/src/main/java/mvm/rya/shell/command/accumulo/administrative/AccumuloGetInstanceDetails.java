@@ -27,6 +27,7 @@ import mvm.rya.api.instance.RyaDetails;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 import mvm.rya.shell.command.administrative.GetInstanceDetails;
 
 // TODO impl, test
@@ -40,13 +41,14 @@ public class AccumuloGetInstanceDetails extends AccumuloCommand implements GetIn
     /**
      * Constructs an instance of {@link AccumuloGetInstanceDetails}.
      *
+     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
      * @param connector - Provides programatic access to the instance of Accumulo
      *   that hosts Rya instance. (not null)
      * @param auths - The authorizations that will be used when interacting with
      *   the instance of Accumulo. (not null)
      */
-    public AccumuloGetInstanceDetails(final Connector connector, final Authorizations auths) {
-        super(connector, auths);
+    public AccumuloGetInstanceDetails(final AccumuloConnectionDetails connectionDetails, final Connector connector, final Authorizations auths) {
+        super(connectionDetails, connector, auths);
     }
 
     @Override

@@ -20,11 +20,9 @@ package mvm.rya.shell.util;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.security.auth.DestroyFailedException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -70,13 +68,13 @@ public class ConnectorFactory {
             final Instance instance = new ZooKeeperInstance(instanceName, zookeeperHostnames);
             return instance.getConnector(username, token);
         } finally {
-            // Destroy the password token that was used.
-            try {
-                token.destroy();
-            } catch (final DestroyFailedException e) {
-                log.log(Level.WARNING, "Could not destroy the password token that was used to connect to Accumulo. " +
-                        "The password may remain in memory.", e);
-            }
+            // Destroy the password token that was used. XXX the connector doesn't work anymore after you destroy the token.
+//            try {
+//                token.destroy();
+//            } catch (final DestroyFailedException e) {
+//                log.log(Level.WARNING, "Could not destroy the password token that was used to connect to Accumulo. " +
+//                        "The password may remain in memory.", e);
+//            }
         }
     }
 }

@@ -26,6 +26,7 @@ import javax.annotation.concurrent.Immutable;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
 
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 import mvm.rya.shell.command.accumulo.administrative.AccumuloCreatePCJ;
 import mvm.rya.shell.command.accumulo.administrative.AccumuloDeletePCJ;
 import mvm.rya.shell.command.accumulo.administrative.AccumuloGetInstanceDetails;
@@ -178,25 +179,30 @@ public class RyaCommands {
     /**
      * Initialize a set of {@link RyaCommands} that will interact with an instance of Accumulo.
      *
+     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
      * @param connector - The Accumulo connector the commands will use. (not null)
      * @param authorizations - The user authorizations the commands will use. (not null)
      * @return The initialized commands.
      */
-    public static RyaCommands buildAccumuloCommands(final Connector connector, final Authorizations authorizations) {
+    public static RyaCommands buildAccumuloCommands(
+            final AccumuloConnectionDetails connectionDetails,
+            final Connector connector,
+            final Authorizations authorizations) {
+        requireNonNull(connectionDetails);
         requireNonNull(connector);
         requireNonNull(authorizations);
 
         return new RyaCommands(
-                new AccumuloInstall(connector, authorizations),
-                new AccumuloCreatePCJ(connector, authorizations),
-                new AccumuloDeletePCJ(connector, authorizations),
-                new AccumuloGetInstanceDetails(connector, authorizations),
-                new AccumuloInstanceExists(connector, authorizations),
-                new AccumuloListInstances(connector, authorizations),
-                new AccumuloUninstall(connector, authorizations),
-                new AccumuloBrowseStatements(connector, authorizations),
-                new AccumuloLoadStatement(connector, authorizations),
-                new AccumuloLoadStatementsFile(connector, authorizations),
-                new AccumuloQuery(connector, authorizations));
+                new AccumuloInstall(connectionDetails, connector, authorizations),
+                new AccumuloCreatePCJ(connectionDetails, connector, authorizations),
+                new AccumuloDeletePCJ(connectionDetails, connector, authorizations),
+                new AccumuloGetInstanceDetails(connectionDetails, connector, authorizations),
+                new AccumuloInstanceExists(connectionDetails, connector, authorizations),
+                new AccumuloListInstances(connectionDetails, connector, authorizations),
+                new AccumuloUninstall(connectionDetails, connector, authorizations),
+                new AccumuloBrowseStatements(connectionDetails, connector, authorizations),
+                new AccumuloLoadStatement(connectionDetails, connector, authorizations),
+                new AccumuloLoadStatementsFile(connectionDetails, connector, authorizations),
+                new AccumuloQuery(connectionDetails, connector, authorizations));
     }
 }

@@ -51,6 +51,7 @@ public interface LoadStatementsFile {
      * Defines the RDF Statement file formats that are supported by the {@link LoadStatementsFile} command.
      */
     public static enum StatementFileFormat {
+        NTRIPLE,
         TURTLE;
 
         // TODO Fill this in.

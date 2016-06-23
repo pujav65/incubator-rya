@@ -32,20 +32,33 @@ import org.apache.accumulo.core.security.Authorizations;
 @ParametersAreNonnullByDefault
 public abstract class AccumuloCommand {
 
+    private final AccumuloConnectionDetails connectionDetails;
     private final Connector connector;
     private final Authorizations auths;
 
     /**
      * Constructs an instance of {@link AccumuloCommand}.
      *
+     * Details about the values that were used to create the connector to the cluster. (not null)
      * @param connector - Provides programatic access to the instance of Accumulo
      *   that hosts Rya instance. (not null)
      * @param auths - The authorizations that will be used when interacting with
      *   the instance of Accumulo. (not null)
      */
-    public AccumuloCommand(final Connector connector, final Authorizations auths) {
+    public AccumuloCommand(
+            final AccumuloConnectionDetails connectionDetails,
+            final Connector connector,
+            final Authorizations auths) {
+        this.connectionDetails = requireNonNull( connectionDetails );
         this.connector = requireNonNull(connector);
         this.auths = requireNonNull(auths);
+    }
+
+    /**
+     * @return Details about the values that were used to create the connector to the cluster. (not null)
+     */
+    public AccumuloConnectionDetails getAccumuloConnectionDetails() {
+        return connectionDetails;
     }
 
     /**

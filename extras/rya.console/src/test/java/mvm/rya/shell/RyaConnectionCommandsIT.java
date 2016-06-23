@@ -34,7 +34,6 @@ import org.springframework.shell.core.JLineShellComponent;
 
 import mvm.rya.shell.SharedShellState.ConnectionState;
 import mvm.rya.shell.SharedShellState.ShellState;
-import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.administrative.Install.InstallConfiguration;
 import mvm.rya.shell.util.InstallPrompt;
 import mvm.rya.shell.util.PasswordPrompt;
@@ -230,7 +229,6 @@ public class RyaConnectionCommandsIT extends RyaShellITBase {
         cmd = RyaConnectionCommands.CONNECT_INSTANCE_CMD + " --instance doesNotExist";
         final CommandResult result = shell.executeCommand(cmd);
         assertFalse( result.isSuccess() );
-        assertEquals(InstanceDoesNotExistException.class, result.getException().getClass());
     }
 
     @Test

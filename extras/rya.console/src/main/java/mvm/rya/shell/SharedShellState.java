@@ -30,7 +30,7 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import mvm.rya.shell.command.RyaCommands;
-import mvm.rya.shell.connection.AccumuloConnectionDetails;
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 
 /**
  * Holds values that are shared between the various Rya command classes.

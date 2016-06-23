@@ -26,7 +26,7 @@ import org.junit.Test;
 import mvm.rya.shell.SharedShellState.ConnectionState;
 import mvm.rya.shell.SharedShellState.ShellState;
 import mvm.rya.shell.command.RyaCommands;
-import mvm.rya.shell.connection.AccumuloConnectionDetails;
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 
 /**
  * Tests the methods of {@link SharedShellState}.

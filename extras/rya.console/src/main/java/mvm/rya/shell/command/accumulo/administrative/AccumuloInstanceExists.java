@@ -12,6 +12,7 @@ import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 import mvm.rya.shell.command.administrative.InstanceExists;
 
 /**
@@ -23,13 +24,14 @@ public class AccumuloInstanceExists extends AccumuloCommand implements InstanceE
     /**
      * Constructs an insatnce of {@link AccumuloInstanceExists}.
      *
+     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
      * @param connector - Provides programatic access to the instance of Accumulo
      *   that hosts Rya instance. (not null)
      * @param auths - The authorizations that will be used when interacting with
      *   the instance of Accumulo. (not null)
      */
-    public AccumuloInstanceExists(final Connector connector, final Authorizations auths) {
-        super(connector, auths);
+    public AccumuloInstanceExists(final AccumuloConnectionDetails connectionDetails, final Connector connector, final Authorizations auths) {
+        super(connectionDetails, connector, auths);
     }
 
     @Override

@@ -24,7 +24,7 @@ import static org.mockito.Mockito.mock;
 import org.junit.Test;
 
 import mvm.rya.shell.command.RyaCommands;
-import mvm.rya.shell.connection.AccumuloConnectionDetails;
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 
 /**
  * Tests the methods of {@link RyaPromptProvider}.
@@ -51,7 +51,7 @@ public class RyaPromptProviderTest {
         final SharedShellState sharedState = new SharedShellState();
 
         final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
-                "", "testInstance", "", "");
+                "", new char[]{}, "testInstance", "", "");
         sharedState.connectedToAccumulo(connectionDetails, mock(RyaCommands.class));
 
         // Create a prompt.
@@ -68,7 +68,7 @@ public class RyaPromptProviderTest {
         final SharedShellState sharedState = new SharedShellState();
 
         final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
-                "", "testInstance", "", "");
+                "", new char[]{}, "testInstance", "", "");
         sharedState.connectedToAccumulo(connectionDetails, mock(RyaCommands.class));
         sharedState.connectedToInstance("testRya");
 

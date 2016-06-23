@@ -47,6 +47,7 @@ import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.RyaCommands;
+import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 import mvm.rya.shell.command.administrative.CreatePCJ;
 import mvm.rya.shell.command.administrative.DeletePCJ;
 import mvm.rya.shell.command.administrative.GetInstanceDetails;
@@ -55,7 +56,6 @@ import mvm.rya.shell.command.administrative.Install.DuplicateInstanceNameExcepti
 import mvm.rya.shell.command.administrative.Install.InstallConfiguration;
 import mvm.rya.shell.command.administrative.ListInstances;
 import mvm.rya.shell.command.administrative.Uninstall;
-import mvm.rya.shell.connection.AccumuloConnectionDetails;
 import mvm.rya.shell.util.InstallPrompt;
 
 /**
