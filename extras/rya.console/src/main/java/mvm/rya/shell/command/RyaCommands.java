@@ -30,6 +30,7 @@ import mvm.rya.shell.command.accumulo.administrative.AccumuloCreatePCJ;
 import mvm.rya.shell.command.accumulo.administrative.AccumuloDeletePCJ;
 import mvm.rya.shell.command.accumulo.administrative.AccumuloGetInstanceDetails;
 import mvm.rya.shell.command.accumulo.administrative.AccumuloInstall;
+import mvm.rya.shell.command.accumulo.administrative.AccumuloInstanceExists;
 import mvm.rya.shell.command.accumulo.administrative.AccumuloListInstances;
 import mvm.rya.shell.command.accumulo.administrative.AccumuloUninstall;
 import mvm.rya.shell.command.accumulo.data.AccumuloBrowseStatements;
@@ -40,6 +41,7 @@ import mvm.rya.shell.command.administrative.CreatePCJ;
 import mvm.rya.shell.command.administrative.DeletePCJ;
 import mvm.rya.shell.command.administrative.GetInstanceDetails;
 import mvm.rya.shell.command.administrative.Install;
+import mvm.rya.shell.command.administrative.InstanceExists;
 import mvm.rya.shell.command.administrative.ListInstances;
 import mvm.rya.shell.command.administrative.Uninstall;
 import mvm.rya.shell.command.data.BrowseStatements;
@@ -56,8 +58,9 @@ public class RyaCommands {
     // Administrative commands that may be invoked. These are initialized whenever a store is connected to.
     private final Install install;
     private final CreatePCJ createPcj;
-    private final DeletePCJ deletePcJ;
+    private final DeletePCJ deletePcj;
     private final GetInstanceDetails getInstanceDetails;
+    private final InstanceExists instanceExists;
     private final ListInstances listInstances;
     private final Uninstall uninstall;
 
@@ -73,24 +76,26 @@ public class RyaCommands {
     private RyaCommands(
             final Install install,
             final CreatePCJ createPcj,
-            final DeletePCJ deletePcJ,
+            final DeletePCJ deletePcj,
             final GetInstanceDetails getInstanceDetails,
+            final InstanceExists instanceExists,
             final ListInstances listInstances,
             final Uninstall uninstall,
             final BrowseStatements browseStatements,
             final LoadStatement loadStatement,
             final LoadStatementsFile loadStatementsFile,
             final Query query) {
-        this.install = install;
-        this.createPcj = createPcj;
-        this.deletePcJ = deletePcJ;
-        this.getInstanceDetails = getInstanceDetails;
-        this.listInstances = listInstances;
-        this.uninstall = uninstall;
-        this.browseStatements = browseStatements;
-        this.loadStatement = loadStatement;
-        this.loadStatementsFile = loadStatementsFile;
-        this.query = query;
+        this.install = requireNonNull(install);
+        this.createPcj = requireNonNull(createPcj);
+        this.deletePcj = requireNonNull(deletePcj);
+        this.getInstanceDetails = requireNonNull(getInstanceDetails);
+        this.instanceExists = requireNonNull(instanceExists);
+        this.listInstances = requireNonNull(listInstances);
+        this.uninstall = requireNonNull(uninstall);
+        this.browseStatements = requireNonNull(browseStatements);
+        this.loadStatement = requireNonNull(loadStatement);
+        this.loadStatementsFile = requireNonNull(loadStatementsFile);
+        this.query = requireNonNull(query);
     }
 
     /**
@@ -111,7 +116,7 @@ public class RyaCommands {
      * @return An instance of {@link DeletePCJ} that is connected to a Rya storage.
      */
     public DeletePCJ getDeletePCJ() {
-        return deletePcJ;
+        return deletePcj;
     }
 
     /**
@@ -126,6 +131,13 @@ public class RyaCommands {
      */
     public ListInstances getListInstances() {
         return listInstances;
+    }
+
+    /**
+     * @return An instance of {@link InstanceExists} that is connected to a Rya storage.
+     */
+    public InstanceExists getInstanceExists() {
+        return instanceExists;
     }
 
     /**
@@ -179,6 +191,7 @@ public class RyaCommands {
                 new AccumuloCreatePCJ(connector, authorizations),
                 new AccumuloDeletePCJ(connector, authorizations),
                 new AccumuloGetInstanceDetails(connector, authorizations),
+                new AccumuloInstanceExists(connector, authorizations),
                 new AccumuloListInstances(connector, authorizations),
                 new AccumuloUninstall(connector, authorizations),
                 new AccumuloBrowseStatements(connector, authorizations),

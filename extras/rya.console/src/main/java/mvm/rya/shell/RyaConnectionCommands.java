@@ -23,7 +23,6 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -40,7 +39,7 @@ import org.springframework.stereotype.Component;
 import mvm.rya.shell.SharedShellState.ConnectionState;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.RyaCommands;
-import mvm.rya.shell.command.administrative.ListInstances;
+import mvm.rya.shell.command.administrative.InstanceExists;
 import mvm.rya.shell.connection.AccumuloConnectionDetails;
 import mvm.rya.shell.util.ConnectorFactory;
 import mvm.rya.shell.util.PasswordPrompt;
@@ -160,10 +159,10 @@ public class RyaConnectionCommands implements CommandMarker {
             @CliOption(key = {"instance"}, mandatory = true, help = "The name of the Rya Instance the shell will interact with.")
             final String instance) {
         try {
-            // Make sure the requested instances exists.
-            final ListInstances listInstances = sharedState.getShellState().getConnectedCommands().get().getListInstances();
-            final List<String> instances = listInstances.listInstances();
-            if(!instances.contains( instance )) {
+            final InstanceExists instanceExists = sharedState.getShellState().getConnectedCommands().get().getInstanceExists();
+
+            // Make sure the requested instance exists.
+            if(!instanceExists.exists(instance)) {
                 throw new RuntimeException(String.format("'%s' does not match an existing Rya instance.", instance));
             }
         } catch(final CommandException e) {
