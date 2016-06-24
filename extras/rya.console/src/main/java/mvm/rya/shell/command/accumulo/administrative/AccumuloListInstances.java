@@ -23,6 +23,7 @@ import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.security.Authorizations;
 
 import mvm.rya.shell.command.CommandException;
@@ -53,6 +54,11 @@ public class AccumuloListInstances extends AccumuloCommand implements ListInstan
 
     @Override
     public List<String> listInstances() throws CommandException {
+
+        final Connector connector = getConnector();
+        final TableOperations tableOps = connector.tableOperations();
+
+
         // TODO Auto-generated method stub
 
         // Iterate through all of the SPO tables that are in accumulo and return their prefixes.

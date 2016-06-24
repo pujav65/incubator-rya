@@ -30,7 +30,6 @@ import org.apache.accumulo.core.security.Authorizations;
 import com.google.common.base.Optional;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
 import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.instance.RyaDetails;
@@ -44,8 +43,6 @@ import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import mvm.rya.api.instance.RyaDetailsRepository;
 import mvm.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
 import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import mvm.rya.api.layout.TablePrefixLayoutStrategy;
-import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
@@ -103,21 +100,21 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
         // TODO initialize the tables that will be used by the instance (spo, indexes, etc)
 
         // Initialize the rest of the tables used by the Rya instance.
-        final AccumuloRdfConfiguration ryaConfig = makeRyaConfig(getAccumuloConnectionDetails(), details);
-        final AccumuloRyaDAO ryaDao = new AccumuloRyaDAO();
-        ryaDao.setConf( ryaConfig );
-        ryaDao.setConnector( getConnector() );
-
-        final TablePrefixLayoutStrategy tls = new TablePrefixLayoutStrategy();
-        tls.setTablePrefix(instanceName);
-        ryaConfig.setTableLayoutStrategy(tls);
-
-        try {
-            ryaDao.init();
-        } catch (final RyaDAOException e) {
-            // TODO text
-            throw new CommandException("", e);
-        }
+//        final AccumuloRdfConfiguration ryaConfig = makeRyaConfig(getAccumuloConnectionDetails(), details);
+//        final AccumuloRyaDAO ryaDao = new AccumuloRyaDAO();
+//        ryaDao.setConf( ryaConfig );
+//        ryaDao.setConnector( getConnector() );
+//
+//        final TablePrefixLayoutStrategy tls = new TablePrefixLayoutStrategy();
+//        tls.setTablePrefix(instanceName);
+//        ryaConfig.setTableLayoutStrategy(tls);
+//
+//        try {
+//            ryaDao.init();
+//        } catch (final RyaDAOException e) {
+//            // TODO text
+//            throw new CommandException("", e);
+//        }
     }
 
     /**
