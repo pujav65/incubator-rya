@@ -179,9 +179,12 @@ public class RyaAdminCommands implements CommandMarker {
         final String ryaInstance = shellState.getRyaInstanceName().get();
 
         try {
-            final RyaDetails details = commands.getGetInstanceDetails().getDetails(ryaInstance);
-            return new RyaDetailsFormatter().format(details);
-
+            final Optional<RyaDetails> details = commands.getGetInstanceDetails().getDetails(ryaInstance);
+            if(details.isPresent()) {
+                return new RyaDetailsFormatter().format(details.get());
+            } else {
+                return "This instance of Rya does not have a Rya Details table. Consider migrating to a newer version of Rya.";
+            }
         } catch(final InstanceDoesNotExistException e) {
             throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
         } catch (final CommandException e) {

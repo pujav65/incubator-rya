@@ -149,7 +149,7 @@ public class RyaAdminCommandsTest {
                 .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date(125221351L))) )
                 .build();
 
-        when(mockGetInstanceDetails.getDetails(eq(instanceName))).thenReturn(details);
+        when(mockGetInstanceDetails.getDetails(eq(instanceName))).thenReturn( java.util.Optional.of(details) );
 
         final RyaCommands mockCommands = mock(RyaCommands.class);
         when(mockCommands.getGetInstanceDetails()).thenReturn( mockGetInstanceDetails );
