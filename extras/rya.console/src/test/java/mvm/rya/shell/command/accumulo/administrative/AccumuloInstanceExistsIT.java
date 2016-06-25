@@ -18,12 +18,66 @@
  */
 package mvm.rya.shell.command.accumulo.administrative;
 
-public class AccumuloInstanceExistsIT {
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-    // exists based on table thing
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.admin.TableOperations;
+import org.apache.accumulo.core.security.Authorizations;
+import org.junit.Test;
 
-    // exists based on data tables.
+import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import mvm.rya.api.RdfCloudTripleStoreConstants;
+import mvm.rya.shell.AccumuloITBase;
+import mvm.rya.shell.command.CommandException;
 
-    // does not exist
+/**
+ * Integration tests the methods of {@link AccumuloInstanceExists}.
+ */
+public class AccumuloInstanceExistsIT extends AccumuloITBase {
 
+    @Test
+    public void exists_ryaDetailsTable() throws AccumuloException, AccumuloSecurityException, CommandException, TableExistsException {
+        final Connector connector = getConnector();
+        final TableOperations tableOps = connector.tableOperations();
+
+        // Create the Rya instance's Rya details table.
+        final String instanceName = "test_instance_";
+        final String ryaDetailsTable = instanceName + AccumuloRyaInstanceDetailsRepository.INSTANCE_DETAILS_TABLE_NAME;
+        tableOps.create(ryaDetailsTable);
+
+        // Verify the command reports the instance exists.
+        final AccumuloInstanceExists instanceExists = new AccumuloInstanceExists(getConnectionDetails(), getConnector(), new Authorizations());
+        assertTrue( instanceExists.exists(instanceName) );
+    }
+
+    @Test
+    public void exists_dataTables() throws AccumuloException, AccumuloSecurityException, CommandException, TableExistsException {
+        final Connector connector = getConnector();
+        final TableOperations tableOps = connector.tableOperations();
+
+        // Create the Rya instance's Rya details table.
+        final String instanceName = "test_instance_";
+
+        final String spoTableName = instanceName + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX;
+        final String ospTableName = instanceName + RdfCloudTripleStoreConstants.TBL_OSP_SUFFIX;
+        final String poTableName = instanceName + RdfCloudTripleStoreConstants.TBL_PO_SUFFIX;
+        tableOps.create(spoTableName);
+        tableOps.create(ospTableName);
+        tableOps.create(poTableName);
+
+        // Verify the command reports the instance exists.
+        final AccumuloInstanceExists instanceExists = new AccumuloInstanceExists(getConnectionDetails(), getConnector(), new Authorizations());
+        assertTrue( instanceExists.exists(instanceName) );
+    }
+
+    @Test
+    public void doesNotExist() throws CommandException, AccumuloException, AccumuloSecurityException {
+        // Verify the command reports the instance does not exists.
+        final AccumuloInstanceExists instanceExists = new AccumuloInstanceExists(getConnectionDetails(), getConnector(), new Authorizations());
+        assertFalse( instanceExists.exists("some_instance") );
+    }
 }
