@@ -18,6 +18,8 @@
  */
 package mvm.rya.shell.command.administrative;
 
+import java.util.Optional;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import mvm.rya.api.instance.RyaDetails;
@@ -34,9 +36,11 @@ public interface GetInstanceDetails {
      * Get configuration and maintenance information about a specific instance of Rya.
      *
      * @param instanceName - Indicates which Rya instance to fetch the details from. (not null)
-     * @return The {@link RyaDetails} that describe the instance of Rya.
+     * @return The {@link RyaDetails} that describe the instance of Rya. If this is
+     *   an older version of Rya, then there may not be any details to fetch. If
+     *   this is the case, empty is returned.
      * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
      * @throws CommandException Something caused the command to fail.
      */
-    public RyaDetails getDetails(final String instanceName) throws InstanceDoesNotExistException, CommandException;
+    public Optional<RyaDetails> getDetails(final String instanceName) throws InstanceDoesNotExistException, CommandException;
 }

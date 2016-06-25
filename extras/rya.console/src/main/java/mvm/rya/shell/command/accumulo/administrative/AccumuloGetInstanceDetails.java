@@ -18,25 +18,34 @@
  */
 package mvm.rya.shell.command.accumulo.administrative;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.Optional;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
 
+import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import mvm.rya.api.instance.RyaDetails;
+import mvm.rya.api.instance.RyaDetailsRepository;
+import mvm.rya.api.instance.RyaDetailsRepository.NotInitializedException;
+import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.InstanceDoesNotExistException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
 import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 import mvm.rya.shell.command.administrative.GetInstanceDetails;
-
-// TODO impl, test
+import mvm.rya.shell.command.administrative.InstanceExists;
 
 /**
  * An Accumulo implementation of the {@link GetInstanceDetails} command.
  */
 @ParametersAreNonnullByDefault
 public class AccumuloGetInstanceDetails extends AccumuloCommand implements GetInstanceDetails {
+
+    private final InstanceExists instanceExists;
 
     /**
      * Constructs an instance of {@link AccumuloGetInstanceDetails}.
@@ -49,14 +58,26 @@ public class AccumuloGetInstanceDetails extends AccumuloCommand implements GetIn
      */
     public AccumuloGetInstanceDetails(final AccumuloConnectionDetails connectionDetails, final Connector connector, final Authorizations auths) {
         super(connectionDetails, connector, auths);
+        instanceExists = new AccumuloInstanceExists(connectionDetails, connector, auths);
     }
 
     @Override
-    public RyaDetails getDetails(final String instanceName) throws InstanceDoesNotExistException, CommandException {
-        // TODO Auto-generated method stub
+    public Optional<RyaDetails> getDetails(final String instanceName) throws InstanceDoesNotExistException, CommandException {
+        requireNonNull(instanceName);
 
-        // NOTE: Just return what the RyaDetailsRepository is storing.
+        // Ensure the Rya instance exists.
+        if(!instanceExists.exists(instanceName)) {
+            throw new InstanceDoesNotExistException(String.format("There is no Rya instance named '%s'.", instanceName));
+        }
 
-        throw new UnsupportedOperationException("Not implemented yet.");
+        // If the instance has details, then return them.
+        final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(getConnector(), instanceName);
+        try {
+            return Optional.of( detailsRepo.getRyaInstanceDetails() );
+        } catch (final NotInitializedException e) {
+            return Optional.empty();
+        } catch (final RyaDetailsRepositoryException e) {
+            throw new CommandException("Could not fetch the Rya instance's details.", e);
+        }
     }
 }
