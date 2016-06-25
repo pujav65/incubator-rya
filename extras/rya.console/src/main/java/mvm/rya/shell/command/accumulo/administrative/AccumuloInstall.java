@@ -30,6 +30,7 @@ import org.apache.accumulo.core.security.Authorizations;
 import com.google.common.base.Optional;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.accumulo.AccumuloRyaDAO;
 import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.instance.RyaDetails;
@@ -38,19 +39,20 @@ import mvm.rya.api.instance.RyaDetails.FreeTextIndexDetails;
 import mvm.rya.api.instance.RyaDetails.GeoIndexDetails;
 import mvm.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
+import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
 import mvm.rya.api.instance.RyaDetails.ProspectorDetails;
 import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import mvm.rya.api.instance.RyaDetailsRepository;
 import mvm.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
 import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import mvm.rya.api.layout.TablePrefixLayoutStrategy;
+import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
 import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 import mvm.rya.shell.command.administrative.Install;
 import mvm.rya.shell.command.administrative.InstanceExists;
-
-// TODO impl
 
 /**
  * An Accumulo implementation of the {@link Install} command.
@@ -97,50 +99,54 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
             throw new CommandException("The RyaDetails couldn't be initialized. Details: " + e.getMessage(), e);
         }
 
-        // TODO initialize the tables that will be used by the instance (spo, indexes, etc)
-
         // Initialize the rest of the tables used by the Rya instance.
-//        final AccumuloRdfConfiguration ryaConfig = makeRyaConfig(getAccumuloConnectionDetails(), details);
-//        final AccumuloRyaDAO ryaDao = new AccumuloRyaDAO();
-//        ryaDao.setConf( ryaConfig );
-//        ryaDao.setConnector( getConnector() );
-//
-//        final TablePrefixLayoutStrategy tls = new TablePrefixLayoutStrategy();
-//        tls.setTablePrefix(instanceName);
-//        ryaConfig.setTableLayoutStrategy(tls);
-//
-//        try {
-//            ryaDao.init();
-//        } catch (final RyaDAOException e) {
-//            // TODO text
-//            throw new CommandException("", e);
-//        }
+        final AccumuloRdfConfiguration ryaConfig = makeRyaConfig(getAccumuloConnectionDetails(), details);
+        final AccumuloRyaDAO ryaDao = new AccumuloRyaDAO();
+        ryaDao.setConf( ryaConfig );
+        ryaDao.setConnector( getConnector() );
+
+        final TablePrefixLayoutStrategy tls = new TablePrefixLayoutStrategy();
+        tls.setTablePrefix(instanceName);
+        ryaConfig.setTableLayoutStrategy(tls);
+
+        try {
+            ryaDao.init();
+        } catch (final RyaDAOException e) {
+            throw new CommandException("Could not initialize all of the tables for the new Rya instance. " +
+                    "This instance may be left in a bad state.", e);
+        }
     }
 
     /**
-     * TODO doc
-     *
-     * @return
-     * @throws CommandException
+     * @return The version of the application as reported by the manifest.
      */
     private String getVersion() {
         return "" + this.getClass().getPackage().getImplementationVersion();
     }
 
     /**
-     * TODO doc
+     * Initializes the {@link RyaDetails} and stores them for the new instance.
      *
-     * @param instanceName
-     * @param installConfig
-     * @return
-     * @throws AlreadyInitializedException
-     * @throws RyaDetailsRepositoryException
-     * @throws CommandException
+     * @param instanceName - The name of the instance that is being created. (not null)
+     * @param installConfig - The instance's install configuration. (not null)
+     * @return The {@link RyaDetails} that were stored.
+     * @throws AlreadyInitializedException Could not be initialized because
+     *   a table with this instance name has already exists and is holding the details.
+     * @throws RyaDetailsRepositoryException Something caused the initialization
+     *   operation to fail.
      */
-    private RyaDetails initializeRyaDetails(final String instanceName, final InstallConfiguration installConfig) throws AlreadyInitializedException, RyaDetailsRepositoryException, CommandException {
+    private RyaDetails initializeRyaDetails(final String instanceName, final InstallConfiguration installConfig)
+            throws AlreadyInitializedException, RyaDetailsRepositoryException {
         final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(getConnector(), instanceName);
 
-        // Store the initial configuration information about the Rya instance to an accumulo table.
+        // Build the PCJ Index details.
+        final PCJIndexDetails.Builder pcjDetailsBuilder = PCJIndexDetails.builder()
+                .setEnabled(installConfig.isPcjIndexEnabled());
+        if(installConfig.getFluoPcjAppName().isPresent()) {
+            final String fluoPcjAppName = installConfig.getFluoPcjAppName().get();
+            pcjDetailsBuilder.setFluoDetails(new FluoDetails( fluoPcjAppName ));
+        }
+
         final RyaDetails details = RyaDetails.builder()
                 // General Metadata
                 .setRyaInstanceName(instanceName)
@@ -155,11 +161,7 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
                         new FreeTextIndexDetails(installConfig.isFreeTextIndexEnabled()))
                 .setEntityCentricIndexDetails(
                         new EntityCentricIndexDetails(installConfig.isEntityCentrixIndexEnabled()))
-                .setPCJIndexDetails(
-                        PCJIndexDetails.builder()
-                            .setEnabled(installConfig.isPcjIndexEnabled())
-                            // TODO fluo app stuff if pcjs are enabled.
-                            .build())
+                .setPCJIndexDetails(  pcjDetailsBuilder.build() )
 
                 // Statistics values.
                 .setProspectorDetails(
@@ -174,31 +176,39 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
         return details;
     }
 
+    /**
+     * Builds a {@link AccumuloRdfConfiguration} object that will be used by the
+     * Rya DAO to initialize all of the tables it will need.
+     *
+     * @param connectionDetails - Indicates how to connect to Accumulo. (not null)
+     * @param details - Indicates what needs to be installed. (not null)
+     * @return A Rya Configuration object that can be used to perform the install.
+     */
     private static AccumuloRdfConfiguration makeRyaConfig(final AccumuloConnectionDetails connectionDetails, final RyaDetails details) {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
 
+        // The Rya Instance Name is used as a prefix for the index tables in Accumulo.
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, details.getRyaInstanceName());
 
+        // Enable the indexers that the instance is configured to use.
         conf.set(ConfigUtils.USE_PCJ, "" + details.getPCJIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_GEO, "" + details.getGeoIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_FREETEXT, "" + details.getFreeTextIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_TEMPORAL, "" + details.getTemporalIndexDetails().isEnabled() );
-
-        final boolean entityEnabled = details.getEntityCentricIndexDetails().isEnabled();
-        conf.set(ConfigUtils.USE_ENTITY, "" +  entityEnabled);
-        if(entityEnabled) {
-            conf.set(ConfigUtils.ENTITY_TABLENAME, ConfigUtils.getEntityTableName(conf));
-        }
+        conf.set(ConfigUtils.USE_ENTITY, "" + details.getEntityCentricIndexDetails().isEnabled());
 
         // XXX The Accumulo implementation of the secondary indices make need all
-        //     of the accumulo connector's parameters for some reason, so we need
-        //     to include them here. This should be required, though. The indexer
-        //     should use the connector that is provided to it.
+        //     of the accumulo connector's parameters to initialize themselves, so
+        //     we need to include them here. It would be nice if the secondary
+        //     indexers used the connector that is provided to them instead of
+        //     building a new one.
         conf.set(ConfigUtils.CLOUDBASE_USER, connectionDetails.getUsername());
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, new String(connectionDetails.getPassword()));
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, connectionDetails.getInstanceName());
         conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, connectionDetails.getZookeepers());
 
+        // This initializes the living indexers that will be used by the application and
+        // caches them within the configuration object so that they may be used later.
         ConfigUtils.setIndexers(conf);
 
         return conf;

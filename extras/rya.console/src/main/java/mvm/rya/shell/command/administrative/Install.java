@@ -18,8 +18,12 @@
  */
 package mvm.rya.shell.command.administrative;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
+import java.util.Objects;
+import java.util.Optional;
+
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
@@ -66,8 +70,7 @@ public interface Install {
         private final boolean enableEntityCentricIndex;
         private final boolean enableTemporalIndex;
         private final boolean enablePcjIndex;
-
-        // TODO add option for setting fluo application name here
+        private final Optional<String> fluoPcjAppName;
 
         /**
          * Use a {@link Builder} to create instances of this class.
@@ -78,13 +81,15 @@ public interface Install {
                 final boolean enableGeoIndex,
                 final boolean enableEntityCentricIndex,
                 final boolean enableTemporalIndex,
-                final boolean enablePcjIndex) {
-            this.enableTableHashPrefix = enableTableHashPrefix;
-            this.enableFreeTextIndex = enableFreeTextIndex;
-            this.enableGeoIndex = enableGeoIndex;
-            this.enableEntityCentricIndex = enableEntityCentricIndex;
-            this.enableTemporalIndex = enableTemporalIndex;
-            this.enablePcjIndex = enablePcjIndex;
+                final boolean enablePcjIndex,
+                final Optional<String> fluoPcjAppName) {
+            this.enableTableHashPrefix = requireNonNull(enableTableHashPrefix);
+            this.enableFreeTextIndex = requireNonNull(enableFreeTextIndex);
+            this.enableGeoIndex = requireNonNull(enableGeoIndex);
+            this.enableEntityCentricIndex = requireNonNull(enableEntityCentricIndex);
+            this.enableTemporalIndex = requireNonNull(enableTemporalIndex);
+            this.enablePcjIndex = requireNonNull(enablePcjIndex);
+            this.fluoPcjAppName = requireNonNull(fluoPcjAppName);
         }
 
         /**
@@ -129,6 +134,14 @@ public interface Install {
             return enablePcjIndex;
         }
 
+        /**
+         * @return The name of the Fluo application that updates this instance of Rya's PCJs.
+         *  Optional because this does not have to be the update paradigm used.
+         */
+        public Optional<String> getFluoPcjAppName() {
+            return fluoPcjAppName;
+        }
+
         @Override
         public int hashCode() {
             return Objects.hash(
@@ -137,7 +150,8 @@ public interface Install {
                     enableGeoIndex,
                     enableEntityCentricIndex,
                     enableTemporalIndex,
-                    enablePcjIndex);
+                    enablePcjIndex,
+                    fluoPcjAppName);
         }
 
         @Override
@@ -152,7 +166,8 @@ public interface Install {
                         enableGeoIndex == config.enableGeoIndex &&
                         enableEntityCentricIndex == config.enableEntityCentricIndex &&
                         enableTemporalIndex == config.enableTemporalIndex &&
-                        enablePcjIndex == config.enablePcjIndex;
+                        enablePcjIndex == config.enablePcjIndex &&
+                        Objects.equals(fluoPcjAppName, config.fluoPcjAppName);
             }
             return false;
         }
@@ -175,6 +190,7 @@ public interface Install {
             private boolean enableEntityCentricIndex = false;
             private boolean enableTemporalIndex = false;
             private boolean enablePcjIndex = false;
+            private String fluoPcjAppName = null;
 
             /**
              * @param enabled - Whether or not the installed instance of Rya will include table prefix hashing.
@@ -230,6 +246,11 @@ public interface Install {
                 return this;
             }
 
+            public Builder setFluoPcjAppName(@Nullable final String fluoPcjAppName) {
+                this.fluoPcjAppName = fluoPcjAppName;
+                return this;
+            }
+
             /**
              * @return Builds an instance of {@link InstallConfiguration} using this builder's values.
              */
@@ -240,7 +261,8 @@ public interface Install {
                         enableGeoIndex,
                         enableEntityCentricIndex,
                         enableTemporalIndex,
-                        enablePcjIndex);
+                        enablePcjIndex,
+                        Optional.ofNullable(fluoPcjAppName));
             }
         }
     }
