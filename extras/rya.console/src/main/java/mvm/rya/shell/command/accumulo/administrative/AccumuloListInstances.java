@@ -18,26 +18,34 @@
  */
 package mvm.rya.shell.command.accumulo.administrative;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.security.Authorizations;
 
+import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.shell.command.CommandException;
 import mvm.rya.shell.command.accumulo.AccumuloCommand;
 import mvm.rya.shell.command.accumulo.AccumuloConnectionDetails;
 import mvm.rya.shell.command.administrative.ListInstances;
-
-// TODO impl, test
 
 /**
  * An Accumulo implementation of the {@link ListInstances} command.
  */
 @ParametersAreNonnullByDefault
 public class AccumuloListInstances extends AccumuloCommand implements ListInstances {
+
+    private final Pattern spoPattern = Pattern.compile("(.*)" + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX);
+    private final Pattern ospPattern = Pattern.compile("(.*)" + RdfCloudTripleStoreConstants.TBL_OSP_SUFFIX);
+    private final Pattern poPattern = Pattern.compile("(.*)" + RdfCloudTripleStoreConstants.TBL_PO_SUFFIX);
 
     /**
      * Constructs an instance of {@link AccumuloListInstances}.
@@ -54,16 +62,86 @@ public class AccumuloListInstances extends AccumuloCommand implements ListInstan
 
     @Override
     public List<String> listInstances() throws CommandException {
+        // Figure out what the instance names might be.
+        final Map<String, InstanceTablesFound> proposedInstanceNames = new HashMap<>();
 
-        final Connector connector = getConnector();
-        final TableOperations tableOps = connector.tableOperations();
+        for(final String table : getConnector().tableOperations().list()) {
+            // SPO table
+            final Matcher spoMatcher = spoPattern.matcher(table);
+            if(spoMatcher.find()) {
+                final String instanceName = spoMatcher.group(1);
+                makeOrGetInstanceTables(proposedInstanceNames, instanceName).setSpoFound();
+            }
 
+            // OSP table
+            final Matcher ospMatcher = ospPattern.matcher(table);
+            if(ospMatcher.find()) {
+                final String instanceName = ospMatcher.group(1);
+                makeOrGetInstanceTables(proposedInstanceNames, instanceName).setOspFound();
+            }
 
-        // TODO Auto-generated method stub
+            // PO table
+            final Matcher poMatcher = poPattern.matcher(table);
+            if(poMatcher.find()) {
+                final String instanceName = poMatcher.group(1);
+                makeOrGetInstanceTables(proposedInstanceNames, instanceName).setPoFound();
+            }
+        }
 
-        // Iterate through all of the SPO tables that are in accumulo and return their prefixes.
-        // If all of them have been installed correctly, we could iterate through the instance details tables.
+        // Determine which of the proposed names fit the expected Rya table structures.
+        final List<String> instanceNames = new ArrayList<>();
+        for(final Entry<String, InstanceTablesFound> entry : proposedInstanceNames.entrySet()) {
+            final InstanceTablesFound tables = entry.getValue();
+            if(tables.allFlagsSet()) {
+                instanceNames.add(entry.getKey());
+            }
+        }
 
-        throw new UnsupportedOperationException("Not implemented yet.");
+        return instanceNames;
+    }
+
+    private InstanceTablesFound makeOrGetInstanceTables(final Map<String, InstanceTablesFound> lookup, final String instanceName) {
+        if(!lookup.containsKey(instanceName)) {
+            lookup.put(instanceName, new InstanceTablesFound());
+        }
+        return lookup.get(instanceName);
+    }
+
+    /**
+     * Flags that are used to determine if a String is a Rya Instance name.
+     */
+    @ParametersAreNonnullByDefault
+    private static class InstanceTablesFound {
+        private boolean spoFound = false;
+        private boolean ospFound = false;
+        private boolean poFound = false;
+
+        /**
+         * Sets the SPO table as seen.
+         */
+        public void setSpoFound() {
+            spoFound = true;
+        }
+
+        /**
+         * Sets the OSP table as seen.
+         */
+        public void setOspFound() {
+            ospFound = true;
+        }
+
+        /**
+         * Sets the POS table as seen.
+         */
+        public void setPoFound() {
+            poFound = true;
+        }
+
+        /**
+         * @return {@code true} if all of the flags have been set; otherwise {@code false}.
+         */
+        public boolean allFlagsSet() {
+            return spoFound && ospFound && poFound;
+        }
     }
 }
