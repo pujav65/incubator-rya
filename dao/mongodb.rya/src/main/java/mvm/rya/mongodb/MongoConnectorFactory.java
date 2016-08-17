@@ -1,7 +1,5 @@
 package mvm.rya.mongodb;
 
-import java.io.IOException;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,7 +21,7 @@ import java.io.IOException;
 
 import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.Objects;
+import java.io.IOException;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConfigurationRuntimeException;
