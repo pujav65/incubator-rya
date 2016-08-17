@@ -54,7 +54,7 @@ public class MongoConnectorFactory {
     public static synchronized MongoClient getMongoClient(final Configuration conf)
             throws ConfigurationRuntimeException, MongoException {
         if (mongoClient == null) {
-            // The singleton client has not yet created, is it a test/mock instance, or a service?
+            // The static client has not yet created, is it a test/mock instance, or a service?
             if (conf.getBoolean(MongoDBRdfConfiguration.USE_TEST_MONGO, false)) {
                 try {
                     MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
@@ -102,7 +102,7 @@ public class MongoConnectorFactory {
      * @return unaltered required string
      * @throws ConfigurationRuntimeException  if required is null
      */
-    static private String requireNonNull(String required, String message) throws ConfigurationRuntimeException {
+    private static String requireNonNull(String required, String message) throws ConfigurationRuntimeException {
         if (required == null)
             throw new ConfigurationRuntimeException(message);
         return required;
@@ -111,7 +111,7 @@ public class MongoConnectorFactory {
     /*
      * Same as above, check that it is a integer and return the parsed integer.
      */
-    static private int requireNonNullInt(String required, String message) throws ConfigurationRuntimeException {
+    private static int requireNonNullInt(String required, String message) throws ConfigurationRuntimeException {
         if (required == null)
             throw new ConfigurationRuntimeException(message);
         try {
