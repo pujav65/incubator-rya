@@ -23,7 +23,6 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.io.IOException;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConfigurationRuntimeException;
 import org.apache.hadoop.conf.Configuration;
 
@@ -101,7 +100,7 @@ public class MongoConnectorFactory {
      * @param required  String to check
      * @param message  throw configuration exception with this description
      * @return unaltered required string
-     * @throws ConfigurationException
+     * @throws ConfigurationRuntimeException  if required is null
      */
     static private String requireNonNull(String required, String message) throws ConfigurationRuntimeException {
         if (required == null)
