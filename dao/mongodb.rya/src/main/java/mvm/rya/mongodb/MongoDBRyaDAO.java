@@ -73,14 +73,9 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
      */
     public MongoDBRyaDAO(final MongoDBRdfConfiguration conf) throws RyaDAOException, NumberFormatException, UnknownHostException {
         this.conf = conf;
-        try {
-            mongoClient = MongoConnectorFactory.getMongoClient(conf);
-            conf.setMongoClient(mongoClient);
-            init();
-        } catch (NumberFormatException | UnknownHostException e) {
-            log.error("Unable to create a connection to mongo.", e);
-            throw e;
-        }
+        mongoClient = MongoConnectorFactory.getMongoClient(conf);
+        conf.setMongoClient(mongoClient);
+        init();
     }
 
 

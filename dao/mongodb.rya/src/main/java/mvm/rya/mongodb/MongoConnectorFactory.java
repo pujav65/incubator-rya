@@ -1,5 +1,7 @@
 package mvm.rya.mongodb;
 
+import java.io.IOException;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,12 +23,19 @@ package mvm.rya.mongodb;
 
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.Objects;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.ConfigurationRuntimeException;
 import org.apache.hadoop.conf.Configuration;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
+import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
+
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 
 /**
  * Mongo convention generally allows for a single instance of a {@link MongoClient}
@@ -41,26 +50,77 @@ public class MongoConnectorFactory {
      * @param conf The {@link Configuration} defining how to construct the MongoClient.
      * @return A {@link MongoClient}.  This client is lazy loaded and the same one
      * is used throughout the lifecycle of the application.
-     * @throws NumberFormatException - Thrown if the configured port is not a valid number
-     * @throws UnknownHostException - The configured host cannot be found.
+     * @throws IOException - if MongodForTestsFactory constructor has an io exception.
+     * @throws ConfigurationRuntimeException - Thrown if the configured server, port, user, or others are missing.
+     * @throws UnknownHostException - if MongoDB host name is not found.
      */
-    public static synchronized MongoClient getMongoClient(final Configuration conf) throws NumberFormatException, UnknownHostException {
-        if(mongoClient == null) {
-            final String host = conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE);
-            final int port = Integer.parseInt(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT));
-            final ServerAddress server = new ServerAddress(host, port);
-
-            //check for authentication credentials
-            if (conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
-                final String username = conf.get(MongoDBRdfConfiguration.MONGO_USER);
-                final String dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
-                final char[] pswd = conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD).toCharArray();
-                final MongoCredential cred = MongoCredential.createCredential(username, dbName, pswd);
-                mongoClient = new MongoClient(server, Arrays.asList(cred));
+    public static synchronized MongoClient getMongoClient(final Configuration conf)
+            throws ConfigurationRuntimeException, MongoException {
+        if (mongoClient == null) {
+            // The singleton client has not yet created, is it a test/mock instance, or a service?
+            if (conf.getBoolean(MongoDBRdfConfiguration.USE_TEST_MONGO, false)) {
+                try {
+                    MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
+                    mongoClient = testsFactory.newMongo();
+                } catch (IOException e) {
+                    // Rethrow as an unchecked error.  Since we are in a test mode here, just fail fast.
+                    throw new MongoException("While creating a factory for a test/mock MongoDB instance.",e);
+                }
             } else {
-                mongoClient = new MongoClient(server);
+                // Connect to a running Mongo server
+                final String host = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE), "MongoDB host name is required");
+                final int port = requireNonNullInt(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT),
+                        "MongoDB Port number is required.");
+                ServerAddress server;
+                try {
+                    server = new ServerAddress(host, port);
+                } catch (UnknownHostException e) {
+                    throw new MongoException("Connecting MongoDB instance, cannot find host="+host,e);
+                }
+                // check for authentication credentials
+                if (conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
+                    final String username = conf.get(MongoDBRdfConfiguration.MONGO_USER);
+                    final String dbName = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME),
+                            MongoDBRdfConfiguration.MONGO_DB_NAME + " is null but required configuration if "
+                                    + MongoDBRdfConfiguration.MONGO_USER + " is configured.");
+                    final char[] pswd = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD),
+                            MongoDBRdfConfiguration.MONGO_USER_PASSWORD + " is null but required configuration if "
+                                    + MongoDBRdfConfiguration.MONGO_USER + " is configured.").toCharArray();
+                    final MongoCredential cred = MongoCredential.createCredential(username, dbName, pswd);
+                    mongoClient = new MongoClient(server, Arrays.asList(cred));
+                } else {
+                    // No user was configured:
+                    mongoClient = new MongoClient(server);
+                }
             }
         }
         return mongoClient;
+    }
+
+    /**
+     * Throw exception for un-configured required values.
+     * 
+     * @param required  String to check
+     * @param message  throw configuration exception with this description
+     * @return unaltered required string
+     * @throws ConfigurationException
+     */
+    static private String requireNonNull(String required, String message) throws ConfigurationRuntimeException {
+        if (required == null)
+            throw new ConfigurationRuntimeException(message);
+        return required;
+    }
+
+    /*
+     * Same as above, check that it is a integer and return the parsed integer.
+     */
+    static private int requireNonNullInt(String required, String message) throws ConfigurationRuntimeException {
+        if (required == null)
+            throw new ConfigurationRuntimeException(message);
+        try {
+            return Integer.parseInt(required);
+        } catch (NumberFormatException e) {
+            throw new ConfigurationRuntimeException(message);
+        }
     }
 }
