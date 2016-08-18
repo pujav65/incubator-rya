@@ -1,7 +1,5 @@
 package mvm.rya.indexing.mongodb;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -46,6 +44,7 @@ import mvm.rya.api.persist.index.RyaSecondaryIndexer;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
+import mvm.rya.mongodb.MongoDBRyaDAO;
 
 /**
  * Secondary Indexer using MondoDB
@@ -56,6 +55,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     private boolean isInit = false;
     protected Configuration conf;
+    protected MongoDBRyaDAO dao;
     protected MongoClient mongoClient;
     protected String dbName;
     protected DB db;
@@ -64,32 +64,24 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     protected T storageStrategy;
 
-    /**
-     * Creates a new {@link AbstractMongoIndexer} with the provided mongo client.
-     * @param mongoClient The {@link MongoClient} to use with this indexer.
-     */
-    public AbstractMongoIndexer(final MongoClient mongoClient) {
-        this.mongoClient = checkNotNull(mongoClient);
-    }
-
-    protected void init() throws NumberFormatException, IOException{
+    protected void init() {
         dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
         db = this.mongoClient.getDB(dbName);
         collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName());
     }
 
+    public void initIndexer(final Configuration conf, final MongoClient client) {
+        this.mongoClient = client;
+        setConf(conf);
+        if (!isInit) {
+            init();
+            isInit = true;
+        }
+    }
+
     @Override
     public void setConf(final Configuration conf) {
         this.conf = conf;
-        if (!isInit) {
-            try {
-                init();
-                isInit = true;
-            } catch (final NumberFormatException | IOException e) {
-                LOG.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     @Override

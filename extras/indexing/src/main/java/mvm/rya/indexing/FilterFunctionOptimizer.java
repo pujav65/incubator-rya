@@ -68,6 +68,7 @@ import mvm.rya.indexing.accumulo.freetext.FreeTextTupleSet;
 import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
 import mvm.rya.indexing.accumulo.geo.GeoTupleSet;
 import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import mvm.rya.indexing.mongodb.AbstractMongoIndexer;
 import mvm.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
 import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import mvm.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
@@ -106,12 +107,12 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
         if (!init) {
             if (ConfigUtils.getUseMongo(conf)) {
                     final MongoClient mongoClient = MongoConnectorFactory.getMongoClient(conf);
-                    geoIndexer = new MongoGeoIndexer(mongoClient);
-                    geoIndexer.setConf(conf);
-                    freeTextIndexer = new MongoFreeTextIndexer(mongoClient);
-                    freeTextIndexer.setConf(conf);
-                    temporalIndexer = new MongoTemporalIndexer(mongoClient);
-                    temporalIndexer.setConf(conf);
+                    geoIndexer = new MongoGeoIndexer();
+                    ((AbstractMongoIndexer) geoIndexer).initIndexer(conf, mongoClient);
+                    freeTextIndexer = new MongoFreeTextIndexer();
+                    ((AbstractMongoIndexer)freeTextIndexer).initIndexer(conf, mongoClient);
+                    temporalIndexer = new MongoTemporalIndexer();
+                    ((AbstractMongoIndexer)temporalIndexer).initIndexer(conf, mongoClient);
             } else {
                 geoIndexer = new GeoMesaGeoIndexer();
                 geoIndexer.setConf(conf);
