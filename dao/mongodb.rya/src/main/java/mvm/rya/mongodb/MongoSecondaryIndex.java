@@ -1,5 +1,6 @@
 package mvm.rya.mongodb;
 
+<<<<<<< HEAD
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,6 +20,8 @@ package mvm.rya.mongodb;
  * under the License.
  */
 
+=======
+>>>>>>> RYA-101 and RYA-133, fixing issues with secondary indexers
 import com.mongodb.MongoClient;
 
 import mvm.rya.api.persist.index.RyaSecondaryIndexer;

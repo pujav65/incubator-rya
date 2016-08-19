@@ -100,29 +100,18 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
         this.conf = conf;
         //reset the init.
         init = false;
-        try {
             init();
-        } catch (final NumberFormatException | IOException e) {
-            LOG.error("Unable to update to use new config, falling back to the old config.", e);
-            init = true;
-        }
     }
 
-    private synchronized void init() throws NumberFormatException, IOException {
+    private synchronized void init() {
         if (!init) {
             if (ConfigUtils.getUseMongo(conf)) {
-                try {
-                    final MongoClient mongoClient = MongoConnectorFactory.getMongoClient(conf);
                     geoIndexer = new MongoGeoIndexer();
-                    ((AbstractMongoIndexer) geoIndexer).initIndexer(conf, mongoClient);
+                    geoIndexer.setConf(conf);
                     freeTextIndexer = new MongoFreeTextIndexer();
-                    ((AbstractMongoIndexer)freeTextIndexer).initIndexer(conf, mongoClient);
+                    freeTextIndexer.setConf(conf);
                     temporalIndexer = new MongoTemporalIndexer();
-                    ((AbstractMongoIndexer)temporalIndexer).initIndexer(conf, mongoClient);
-                } catch (NumberFormatException | UnknownHostException e) {
-                    LOG.error("Unable to connect to mongo.", e);
-                    throw e;
-                }
+                    temporalIndexer.setConf(conf);
             } else {
                 geoIndexer = new GeoMesaGeoIndexer();
                 geoIndexer.setConf(conf);

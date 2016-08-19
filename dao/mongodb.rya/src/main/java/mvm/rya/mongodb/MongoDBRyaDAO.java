@@ -35,6 +35,7 @@ import com.mongodb.DBObject;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.InsertOptions;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException.DuplicateKey;
 
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
