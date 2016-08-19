@@ -36,8 +36,8 @@ public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorag
     private static final Logger logger = Logger.getLogger(MongoFreeTextIndexer.class);
 
     @Override
-    protected void init() {
-        super.init();
+    public void init() {
+        initCore();
         predicates = ConfigUtils.getFreeTextPredicates(conf);
         storageStrategy = new TextMongoDBStorageStrategy();
         storageStrategy.createIndices(collection);

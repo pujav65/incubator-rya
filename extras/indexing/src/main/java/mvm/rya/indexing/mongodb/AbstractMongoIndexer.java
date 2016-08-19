@@ -43,14 +43,16 @@ import mvm.rya.api.domain.RyaURI;
 import mvm.rya.api.persist.index.RyaSecondaryIndexer;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.StatementConstraints;
+import mvm.rya.mongodb.MongoConnectorFactory;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
 import mvm.rya.mongodb.MongoDBRyaDAO;
+import mvm.rya.mongodb.MongoSecondaryIndex;
 
 /**
  * Secondary Indexer using MondoDB
  * @param <T> - The {@link AbstractMongoIndexingStorageStrategy} this indexer uses.
  */
-public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrategy> implements RyaSecondaryIndexer {
+public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrategy> implements MongoSecondaryIndex {
     private static final Logger LOG = Logger.getLogger(AbstractMongoIndexer.class);
 
     private boolean isInit = false;
@@ -64,15 +66,20 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     protected T storageStrategy;
 
-    protected void init() {
+    protected void initCore() {
         dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
         db = this.mongoClient.getDB(dbName);
         collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName());
     }
+    
+    public void setClient(MongoClient client){
+    	this.mongoClient = client;
+    }
 
+    // TODO this method is only intended to be used in testing
     public void initIndexer(final Configuration conf, final MongoClient client) {
-        this.mongoClient = client;
         setConf(conf);
+        setClient(client);
         if (!isInit) {
             init();
             isInit = true;
@@ -82,6 +89,10 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     @Override
     public void setConf(final Configuration conf) {
         this.conf = conf;
+        if (!isInit){
+        	setClient(MongoConnectorFactory.getMongoClient(conf));
+        	init();
+        }
     }
 
     @Override

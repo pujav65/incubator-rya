@@ -43,8 +43,8 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
     private static final Logger logger = Logger.getLogger(MongoGeoIndexer.class);
 
     @Override
-    protected void init() {
-        super.init();
+	public void init() {
+        initCore();
         predicates = ConfigUtils.getGeoPredicates(conf);
         storageStrategy = new GeoMongoDBStorageStrategy(Double.valueOf(conf.get(MongoDBRdfConfiguration.MONGO_GEO_MAXDISTANCE, "1e-10")));
         storageStrategy.createIndices(collection);

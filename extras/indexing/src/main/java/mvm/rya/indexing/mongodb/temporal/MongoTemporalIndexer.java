@@ -47,8 +47,8 @@ public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBSt
     private static final Logger LOG = Logger.getLogger(MongoTemporalIndexer.class);
 
     @Override
-    protected void init() {
-        super.init();
+    public void init() {
+        initCore();
         predicates = ConfigUtils.getTemporalPredicates(conf);
         storageStrategy = new TemporalMongoDBStorageStrategy();
         storageStrategy.createIndices(collection);

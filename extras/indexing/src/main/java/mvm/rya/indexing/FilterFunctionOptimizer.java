@@ -106,13 +106,12 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     private synchronized void init() {
         if (!init) {
             if (ConfigUtils.getUseMongo(conf)) {
-                    final MongoClient mongoClient = MongoConnectorFactory.getMongoClient(conf);
                     geoIndexer = new MongoGeoIndexer();
-                    ((AbstractMongoIndexer) geoIndexer).initIndexer(conf, mongoClient);
+                    geoIndexer.setConf(conf);
                     freeTextIndexer = new MongoFreeTextIndexer();
-                    ((AbstractMongoIndexer)freeTextIndexer).initIndexer(conf, mongoClient);
+                    freeTextIndexer.setConf(conf);
                     temporalIndexer = new MongoTemporalIndexer();
-                    ((AbstractMongoIndexer)temporalIndexer).initIndexer(conf, mongoClient);
+                    temporalIndexer.setConf(conf);
             } else {
                 geoIndexer = new GeoMesaGeoIndexer();
                 geoIndexer.setConf(conf);
