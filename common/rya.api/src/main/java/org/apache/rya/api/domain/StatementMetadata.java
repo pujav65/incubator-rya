@@ -37,8 +37,20 @@ public class StatementMetadata {
         
     }
     
+    public Map<String, String> asMap() {
+        return new HashMap<String, String>(metadataMap);
+    }
+    
+    public String getValue(String key){
+        return metadataMap.get(key);
+    }
+    
     public void addMetadata(String key, String value){
         metadataMap.put(key, value);
+    }
+
+    public void remove(String key){
+        metadataMap.remove(key);
     }
 
     public StatementMetadata(byte[] value) throws RdfDAOException {

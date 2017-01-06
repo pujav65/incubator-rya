@@ -1,11 +1,14 @@
 package org.apache.rya.tinkerpop;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -44,7 +47,8 @@ public class RyaEdge implements Edge {
     @Override
     public <V> Property<V> property(String key, V value) {
         // TODO Auto-generated method stub
-        return null;
+        statement.getMetadata().addMetadata(key, value.toString());
+        return (Property<V>) new RyaProperty(key, value.toString(), this);
     }
 
     @Override
@@ -76,8 +80,18 @@ public class RyaEdge implements Edge {
 
     @Override
     public <V> Iterator<Property<V>> properties(String... propertyKeys) {
-        // TODO Auto-generated method stub
-        return null;
+        StatementMetadata metadata = statement.getMetadata();
+        List<Property<V>> properties = new ArrayList<Property<V>>();
+        for (String key : propertyKeys){
+            
+        }
+        if (propertyKeys.length == 0){
+            Map<String, String> metadataMap = metadata.asMap();
+            for (String key : metadataMap.keySet()){
+                properties.add((Property<V>) new RyaProperty(key, metadataMap.get(key), this));
+            }
+        }
+        return  properties.iterator();
     }
 
 }

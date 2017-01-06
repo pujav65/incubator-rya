@@ -1,7 +1,10 @@
 package org.apache.rya.tinkerpop;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
@@ -16,9 +19,11 @@ import org.apache.rya.api.persist.query.RyaQueryEngine;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality;
+import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.calrissian.mango.collect.CloseableIterable;
 import org.openrdf.model.vocabulary.XMLSchema;
 
@@ -53,8 +58,7 @@ public class RyaVertex implements Vertex {
     }
 
     @Override
-    public void remove() {
-        
+    public void remove() {   
         // first query for all of the statements referencing this vertex as either subject/object
         if (isValidSubjectVertex(type)) {
             RyaStatement subjStatement = new RyaStatement();
@@ -85,19 +89,40 @@ public class RyaVertex implements Vertex {
     }
 
     @Override
-    public Edge addEdge(String predicate, Vertex outVertex, Object... arg2) {
+    public Edge addEdge(String predicate, Vertex outVertex, Object... keyValues) {
         if (RyaTinkerpopUtils.isValidURI(predicate) && isValidSubjectVertex(type)){
             RyaVertex objectVertex = null;
             // create a rya type from the outVertex
             if (!(outVertex instanceof RyaVertex)) {
                 // create a RyaVertex from the Vertex
-                objectVertex = RyaVertex.from(outVertex);
+                objectVertex = RyaVertex.from(outVertex, graph);
             }
             else {
                 objectVertex = (RyaVertex) outVertex;
             }
-            // TODO persist the metadata
             StatementMetadata statementMetadata = new StatementMetadata();
+            for (int i = 0; i < keyValues.length; i = i + 2) {
+                RyaType type = null;
+                if (keyValues[i] instanceof RyaType){
+                    type = (RyaType) keyValues[i];
+                }
+                else if (keyValues[i] instanceof String){
+                    String id = (String) keyValues[i];
+                    if (RyaTinkerpopUtils.isValidURI(id)) {
+                        type = new RyaURI(id);
+                    }
+                }
+                if (type != null){
+                    RyaType value = null;
+                    if (keyValues[i+1] instanceof RyaType){
+                        value = (RyaType) keyValues[i+1];
+                    }
+                    else {
+                        value = new RyaType(keyValues[i+1].toString());
+                    }
+                    statementMetadata.addMetadata(type.getData(), value.getData());
+                }
+            }
             
             RyaStatement statementToPersist = new RyaStatement();
             statementToPersist.setSubject(new RyaURI(type.getData()));
@@ -110,38 +135,88 @@ public class RyaVertex implements Vertex {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            return new RyaEdge(statementToPersist);
+            return new RyaEdge(statementToPersist, graph);
             
         }
-        return null;
+        throw new IllegalArgumentException("Input arguments to add Edge are invalid!");
     }
 
-    private static RyaVertex from(Vertex outVertex) {
-        // TODO Auto-generated method stub
-        return null;
+    private static RyaVertex from(Vertex outVertex, RyaGraph graph) {
+        Object[] id = new Object[]{T.id, outVertex.id()};
+        Object[] label = new Object[]{T.label, outVertex.label()};
+        return RyaTinkerpopUtils.getVertex(graph, id, label);
     }
 
     @Override
     public Iterator<Edge> edges(Direction direction, String... arg1) {
-        
-        return null;
+        // TODO ignoring pred labels so far
+        if (Direction.IN == direction){    
+            try {
+                RyaStatement statement = new RyaStatement();
+                statement.setObject(type);
+                CloseableIterable<RyaStatement> statementIt = graph.getDAO().getQueryEngine().query(new RyaQuery(statement));
+                return new RyaEdgeIterable(statementIt, graph).iterator();
+            } catch (RyaDAOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        if ((Direction.OUT == direction) && isValidSubjectVertex(type)){    
+            try {
+                RyaStatement statement = new RyaStatement();
+                statement.setSubject(new RyaURI(type.getData()));
+                CloseableIterable<RyaStatement> statementIt = graph.getDAO().getQueryEngine().query(new RyaQuery(statement));
+                return new RyaEdgeIterable(statementIt, graph).iterator();
+            } catch (RyaDAOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        // TODO not supporting both right now
+        List<Edge> edges = new ArrayList<Edge>();
+        return edges.iterator();
     }
 
     @Override
     public <V> Iterator<VertexProperty<V>> properties(String... keys) {
-        return null;
+        // TODO not implemented
+        return new ArrayList<VertexProperty<V>>().iterator();
     }
 
     @Override
     public <V> VertexProperty<V> property(Cardinality arg0, String arg1, V arg2, Object... arg3) {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO not implemented
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterator<Vertex> vertices(Direction arg0, String... arg1) {
-        // TODO Auto-generated method stub
-        return null;
+    public Iterator<Vertex> vertices(Direction direction, String... arg1) {
+     // TODO ignoring pred labels so far
+        if (Direction.IN == direction){    
+            try {
+                RyaStatement statement = new RyaStatement();
+                statement.setObject(type);
+                CloseableIterable<RyaStatement> statementIt = graph.getDAO().getQueryEngine().query(new RyaQuery(statement));
+                return new RyaEdgeVertexIterable(statementIt, graph, direction).iterator();
+            } catch (RyaDAOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        if ((Direction.OUT == direction) && isValidSubjectVertex(type)){    
+            try {
+                RyaStatement statement = new RyaStatement();
+                statement.setSubject(new RyaURI(type.getData()));
+                CloseableIterable<RyaStatement> statementIt = graph.getDAO().getQueryEngine().query(new RyaQuery(statement));
+                return new RyaEdgeVertexIterable(statementIt, graph, direction).iterator();
+            } catch (RyaDAOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        // TODO not supporting both right now
+        List<Vertex> edges = new ArrayList<Vertex>();
+        return edges.iterator();
     }
 
     public RyaType getType() {
