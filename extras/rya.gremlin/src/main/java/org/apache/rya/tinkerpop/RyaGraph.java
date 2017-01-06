@@ -1,4 +1,22 @@
 package org.apache.rya.tinkerpop;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,6 +25,7 @@ import java.util.List;
 import org.apache.commons.configuration.Configuration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQuery;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -14,6 +33,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.calrissian.mango.collect.CloseableIterable;
 
 public class RyaGraph implements Graph {
     
@@ -48,15 +68,21 @@ public class RyaGraph implements Graph {
     @Override
     public Configuration configuration() {
         // TODO Auto-generated method stub
-        return null;
-//        return dao.getConf();
+       return null;
     }
 
     @Override
     public Iterator<Edge> edges(Object... edgeIDs) {
         // TODO ignoring edge ids right now
-        dao.getQueryEngine().query(new RyaQuery(new RyaStatement()));
-        return null;
+        try {
+            RyaStatement statement = new RyaStatement();
+            CloseableIterable<RyaStatement> statementIt = dao.getQueryEngine().query(new RyaQuery(statement));
+            return new RyaEdgeIterable(statementIt, this).iterator();
+        } catch (RyaDAOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return new ArrayList<Edge>().iterator();
     }
 
     @Override
@@ -74,9 +100,8 @@ public class RyaGraph implements Graph {
         List<Vertex> vertices = new ArrayList<Vertex>();
         for (Object id : vertexIDs){
             Object[] idKeyPair = new Object[]{T.id, id};
-            this.addVertex(idKeyPair);
-        }
-        
+            addVertex(idKeyPair);
+        }       
         return vertices.iterator();
     }
 

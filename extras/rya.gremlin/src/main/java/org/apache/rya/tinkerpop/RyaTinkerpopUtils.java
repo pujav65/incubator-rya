@@ -1,4 +1,22 @@
 package org.apache.rya.tinkerpop;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 import java.net.URI;
 import java.util.Optional;
@@ -7,7 +25,6 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Graph.Exceptions;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
@@ -33,7 +50,7 @@ public class RyaTinkerpopUtils {
     }
 
     public static RyaVertex getVertex(RyaGraph graph, Object... keyValues) {
-        // look for the label, otherwise look for the id
+        // look for the id, otherwise look for the label
         Optional<Object> nodeID = ElementHelper.getIdValue(keyValues);
         RyaType ryaType;
         if (nodeID.isPresent() && validID(nodeID.get().toString())){
@@ -46,8 +63,7 @@ public class RyaTinkerpopUtils {
             }
             else {
                 // TODO should we assume it is a uri if it doesn't have a type?
-                // right now assuming it is a uri, but this may be poorly formed
-                // maybe we should check to see if it is a well formed URI before accepting?
+                // right now assuming it is a poorly formed uri, then it is a string
                 if (isValidURI(id)){
                     ryaType = new RyaURI(id);                 
                 }
