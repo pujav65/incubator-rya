@@ -28,6 +28,7 @@ import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQuery;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
@@ -38,6 +39,10 @@ import org.calrissian.mango.collect.CloseableIterable;
 public class RyaGraph implements Graph {
     
     private RyaDAO dao;
+    
+    public RyaGraph(RyaDAO dao){
+        this.dao = dao;
+    }
     
     public RyaDAO getDAO() {
         return dao;
@@ -101,7 +106,19 @@ public class RyaGraph implements Graph {
         for (Object id : vertexIDs){
             Object[] idKeyPair = new Object[]{T.id, id};
             addVertex(idKeyPair);
-        }       
+        }   
+        // TODO this is wrong
+        if (vertexIDs.length == 0){
+            RyaStatement statement = new RyaStatement();
+            CloseableIterable<RyaStatement> statementIt;
+            try {
+                statementIt = dao.getQueryEngine().query(new RyaQuery(statement));
+                return new RyaEdgeVertexIterable(statementIt, this, Direction.OUT).iterator();            
+            } catch (RyaDAOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
         return vertices.iterator();
     }
 

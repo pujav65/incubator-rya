@@ -74,7 +74,7 @@ public class RyaTinkerpopUtils {
         }
         else {
             Optional<String> label = ElementHelper.getLabelValue(keyValues);
-            if (label.isPresent() && label.get().isEmpty()){
+            if (label.isPresent() && !label.get().isEmpty()){
                 String value = label.get();
                 ryaType = new RyaType(value);
             }

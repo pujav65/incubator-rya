@@ -35,6 +35,11 @@ import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 public class RyaEdge implements Edge {
+    @Override
+    public String toString() {
+        return "RyaEdge [statement=" + statement + "]";
+    }
+
     private RyaStatement statement;
     private RyaGraph graph;
 
