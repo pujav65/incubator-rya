@@ -87,6 +87,16 @@ public class GraphXEdgeInputFormatTest {
 
         apiImpl.add(input);
 
+        RyaStatement input2 = RyaStatement.builder()
+                .setSubject(new RyaURI("http://www.google.com"))
+                .setPredicate(new RyaURI("http://some_other_uri"))
+                .setObject(new RyaURI("http://www.cnn.com"))
+                .setColumnVisibility(new byte[0])
+                .setValue(new byte[0])
+                .build();
+
+            apiImpl.add(input2);
+
         Job jobConf = Job.getInstance();
 
         GraphXEdgeInputFormat.setMockInstance(jobConf, instance.getInstanceName());
@@ -129,6 +139,6 @@ public class GraphXEdgeInputFormatTest {
 
         System.out.println(results.size());
         System.out.println(results);
-        Assert.assertTrue(results.size() == 2);
+        Assert.assertTrue(results.size() == 3);
     }
 }
