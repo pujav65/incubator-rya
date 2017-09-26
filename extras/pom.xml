@@ -38,6 +38,7 @@ under the License.
         <module>indexing</module>
         <module>rya.indexing.pcj</module>
         <module>indexingExample</module>
+        <module>rya.spin.batch</module>
         <module>rya.reasoning</module>
         <module>vagrantExample</module>
         <module>rya.pcj.fluo</module>
