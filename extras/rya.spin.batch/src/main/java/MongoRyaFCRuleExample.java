@@ -17,8 +17,6 @@
  * under the License.
  */
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -36,8 +34,6 @@ import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.apache.rya.spin.batch.RyaFCInferencer;
 import org.apache.zookeeper.ClientCnxn;
-import org.eclipse.rdf4j.spin.SpinParser;
-import org.eclipse.rdf4j.spin.SpinParser.Input;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -59,8 +55,8 @@ import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 
 
-public class MongoRyaDirectExample {
-    private static final Logger log = Logger.getLogger(MongoRyaDirectExample.class);
+public class MongoRyaFCRuleExample {
+    private static final Logger log = Logger.getLogger(MongoRyaFCRuleExample.class);
 
     private static final boolean IS_DETAILED_LOGGING_ENABLED = false;
 
@@ -102,20 +98,9 @@ public class MongoRyaDirectExample {
             repository = new SailRepository(sail);
             conn = repository.getConnection();
 
-            final long start = System.currentTimeMillis();
-            log.info("Adding initial data...");
-            addData(conn);
-            testInference(conn);
-            RyaFCInferencer inferencer = new RyaFCInferencer(conn);
+            demonstrateOneRuleReasoning(conn);
             
-            log.info("Executing construct query...");
-            String query = "CONSTRUCT {?b <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://acme.com/avocadoLovers>.  } WHERE {?b <http://acme.com/actions/likes> \"Avocados\"}";
-            inferencer.executeConstructQuery(query);
-            
-            testInference(conn);
-            log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
-            
-            
+            demonstrateTwoRuleReasoning(conn);
             
             
         } finally {
@@ -126,6 +111,45 @@ public class MongoRyaDirectExample {
         }
     }
 
+    
+    public static void demonstrateOneRuleReasoning(final SailRepositoryConnection conn) throws Exception {
+        final long start = System.currentTimeMillis();
+        log.info("Adding initial data...");
+        addData(conn);
+        testInference(conn);
+        RyaFCInferencer inferencer = new RyaFCInferencer(conn);
+        
+        log.info("Executing construct query...");
+        String query = "CONSTRUCT {?b <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://acme.com/avocadoLovers>.  } WHERE {?b <http://acme.com/actions/likes> \"Avocados\"}";
+        inferencer.registerConstructQuery(query);
+        
+        inferencer.executeReasoning();
+        testInference(conn);
+        deleteData(conn);
+        testInference(conn);
+        log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
+    }
+
+    
+    public static void demonstrateTwoRuleReasoning(final SailRepositoryConnection conn) throws Exception {
+        final long start = System.currentTimeMillis();
+        log.info("Adding initial data...");
+        addData(conn);
+        testInference(conn);
+        RyaFCInferencer inferencer = new RyaFCInferencer(conn);
+        
+        log.info("Executing construct query...");
+        String query = "CONSTRUCT {?b <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://acme.com/avocadoLovers>.  } WHERE {?b <http://acme.com/actions/likes> \"Avocados\"}";
+        String query2 = "CONSTRUCT {?b <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://acme.com/NutLovers>.  } WHERE {?b <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://acme.com/avocadoLovers> }";
+        inferencer.registerConstructQuery(query);
+        inferencer.registerConstructQuery(query2);
+        
+        inferencer.executeReasoning();
+        testInference(conn);
+        deleteData(conn);
+        testInference(conn);
+        log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
+    }
 
     private static void closeQuietly(final SailRepository repository) {
         if (repository != null) {
@@ -185,6 +209,22 @@ public class MongoRyaDirectExample {
                 + "  <http://acme.com/people/Mike> " //
                 + "       <http://acme.com/actions/likes> \"A new book\" ;\n"//
                 + "       <http://acme.com/actions/likes> \"Avocados\" .\n" + "}";
+
+        log.info("Performing Query");
+
+        Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+        update.execute();
+        
+    }
+
+    public static void deleteData(final SailRepositoryConnection conn) throws MalformedQueryException, RepositoryException,
+    UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException {
+
+        // Add data
+        String query = "DELETE WHERE \n"//
+                + "{\n"//
+                + "  <http://acme.com/people/Mike> " //
+                + "       ?p ?o .}";
 
         log.info("Performing Query");
 

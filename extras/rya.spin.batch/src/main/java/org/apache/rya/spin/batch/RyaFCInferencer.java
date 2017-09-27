@@ -1,14 +1,14 @@
 package org.apache.rya.spin.batch;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.openrdf.model.Statement;
 import org.openrdf.query.GraphQuery;
 import org.openrdf.query.GraphQueryResult;
 import org.openrdf.query.QueryLanguage;
-import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.memory.MemoryStore;
 
 public class RyaFCInferencer {
 	
@@ -24,20 +24,28 @@ public class RyaFCInferencer {
 
 	private SailRepositoryConnection conn;
 	
+	private List<String> sparqlGraphQueries = new ArrayList<String>();
+	
 	public RyaFCInferencer(SailRepositoryConnection conn) throws RepositoryException{
 		this.conn = conn;		
 	}
+	
+	public void registerConstructQuery(String query) throws RyaInferenceException {
+		sparqlGraphQueries.add(query);
+	}
 
-	public boolean executeConstructQuery(String query) throws RyaInferenceException {
+	public boolean executeReasoning() throws RyaInferenceException {
 	
 		try {
-	        GraphQuery graphQuery= conn.prepareGraphQuery(QueryLanguage.SPARQL, query);
-	        // add the constructed statements
-	        GraphQueryResult result = graphQuery.evaluate();
-	        while (result.hasNext()){
-	        	Statement statement = result.next();
-	        	conn.add(statement);
-	        }
+			for (String query: sparqlGraphQueries){
+		        GraphQuery graphQuery= conn.prepareGraphQuery(QueryLanguage.SPARQL, query);
+		        // add the constructed statements
+		        GraphQueryResult result = graphQuery.evaluate();
+		        while (result.hasNext()){
+		        	Statement statement = result.next();
+		        	conn.add(statement);
+		        }
+			}
 	        return true;
 		}
 		catch (Exception ex){
